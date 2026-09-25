@@ -3,177 +3,591 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sales Pipeline</title>
+<title>Sales Pipeline Dashboard</title>
 <style>
-  :root{--won:#76b7b2;--hot:#f28e2b;--pot:#e15759;--fc:#4e79a7;--ink:#333;--muted:#6f7b8a;--grid:#e3e6ea;--sel:#dde6f0}
-  *{box-sizing:border-box}
-  body{margin:0;background:#f3f4f6;font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;color:var(--ink);padding:16px}
-  .wrap{max-width:1000px;margin:0 auto}
-  .tabs{display:flex;gap:2px;margin-bottom:-1px;position:relative;z-index:1}
-  .tabs button{font:inherit;font-size:13px;padding:7px 16px;border:1px solid #d9dce0;border-bottom:0;background:#e8eaed;color:var(--muted);cursor:pointer}
-  .tabs button[aria-selected=true]{background:#fff;color:var(--ink);font-weight:600}
-  .tabs button:focus-visible{outline:2px solid #4e79a7}
-  .dash{display:flex;gap:14px;background:#fff;padding:12px;border:1px solid #d9dce0}
-  .dash[hidden]{display:none}
-  .chart{flex:1;min-width:0;border:1px solid #cfd3d8;padding:6px 8px 8px}
-  h1{font-size:24px;font-weight:600;margin:4px 0 10px;letter-spacing:.2px}
-  .head{display:grid;grid-template-columns:150px 1fr;font-size:14px;font-weight:600;border-bottom:1px solid var(--grid);padding-bottom:4px}
-  .head span:last-child{text-align:center;padding-right:8px}
-  .row{display:grid;grid-template-columns:110px 26px 1fr;height:96px;border-bottom:1px solid var(--grid)}
-  .who{font-size:13px;color:var(--muted);align-self:center;line-height:1.35;word-break:break-word;padding-right:6px}
-  .yl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:600;text-align:center;align-self:center}
-  .plot{position:relative;margin:10px 0 9px 34px}
-  .tick{position:absolute;left:-34px;width:28px;text-align:right;font-size:11px;color:var(--muted);transform:translateY(50%)}
-  .gl{position:absolute;left:0;right:0;border-top:1px solid var(--grid)}
-  .bars{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr)}
-  .col{position:relative;transition:opacity .2s}
-  .bar{position:absolute;left:14%;right:14%;bottom:0;transition:height .35s;cursor:pointer;min-height:2px}
-  .val{position:absolute;left:-10%;right:-10%;text-align:center;font-size:12.5px;white-space:nowrap;pointer-events:none}
-  .foot{display:grid;grid-template-columns:136px 1fr;font-size:13px;color:var(--muted);padding-top:6px}
-  .foot div{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;margin-left:34px}
-  .empty{padding:60px 10px;text-align:center;color:var(--muted);font-size:14px}
-  /* DASHOARD PT */
-  .head2{grid-template-columns:190px 1fr}
-  .r2{display:grid;grid-template-columns:190px repeat(4,1fr);height:24px;border-bottom:1px solid var(--grid);align-items:end}
-  .r2 .who{align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;line-height:1;word-break:normal}
-  .cell{position:relative;height:100%;border-left:1px solid transparent}
-  .cell .h{position:absolute;left:12%;right:12%;bottom:2px;cursor:pointer}
-  .cell .t{position:absolute;left:0;right:0;top:0;text-align:center;font-size:11.5px;line-height:13px;white-space:nowrap;pointer-events:none}
-  .foot2{display:grid;grid-template-columns:190px repeat(4,1fr);font-size:13px;color:var(--muted);padding-top:6px;text-align:center}
-  /* sidebar */
-  aside{width:190px;flex:none;font-size:13px}
-  aside h3{font-size:13px;font-weight:600;margin:0 0 6px}
-  .sec{margin-bottom:20px}
-  .list{max-height:560px;overflow:auto}
-  .list.short{max-height:none}
-  label.o{display:flex;align-items:center;gap:6px;padding:2px 3px;cursor:pointer;color:var(--muted);white-space:nowrap;overflow:hidden}
-  label.o.on{background:var(--sel)}
-  label.o span{overflow:hidden;text-overflow:ellipsis}
-  input[type=checkbox]{margin:0;accent-color:#4e79a7;flex:none}
-  .rng{position:relative;height:22px;margin-top:4px}
-  .rng input{position:absolute;left:0;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;margin:0;height:22px}
-  .rng input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:11px;height:11px;border-radius:50%;background:#fff;border:1.5px solid #555;cursor:pointer}
-  .rng input::-moz-range-thumb{pointer-events:auto;width:9px;height:9px;border-radius:50%;background:#fff;border:1.5px solid #555;cursor:pointer}
-  .track{position:absolute;left:0;right:0;top:10px;height:2px;background:#bbb}
-  .fill{position:absolute;top:10px;height:2px;background:#4e79a7}
-  .rv{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
-  .lg{display:flex;align-items:center;gap:6px;padding:2px 3px;cursor:pointer;color:var(--muted);border:0;background:none;width:100%;font:inherit;text-align:left}
-  .lg i{width:11px;height:11px;display:inline-block}
-  .lg.sel{background:var(--sel);color:var(--ink)}
-  .lg:focus-visible,label.o:focus-within{outline:2px solid #4e79a7}
-  .grad{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
-  .grad i{flex:1;height:18px;background:linear-gradient(90deg,#d3e5f4,#2a5b8c)}
-  #tip{position:fixed;pointer-events:none;background:#fff;border:1px solid #bbb;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:6px 9px;font-size:12px;display:none;z-index:9;line-height:1.5}
-  @media(max-width:760px){.dash{flex-direction:column}aside{width:100%}.row{grid-template-columns:80px 22px 1fr}.head,.foot{grid-template-columns:110px 1fr}.val{font-size:10px}
-    .r2,.foot2{grid-template-columns:110px repeat(4,1fr)}.head2{grid-template-columns:110px 1fr}.cell .t{font-size:9px}}
+:root{--won:#76b7b2;--hot:#f28e2b;--pot:#e15759;--fc:#4e79a7;--ink:#333;--muted:#6f7b8a;--grid:#e3e6ea;--sel:#dde6f0;--line:#d9dce0}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f4f6;font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;color:var(--ink);padding:16px}
+.wrap{max-width:1040px;margin:0 auto}
+a{color:#2a5b8c}
+.topbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px;font-size:14px}
+.topbar h2{margin:0;font-size:18px;font-weight:600;margin-right:auto}
+.topbar select,.topbar input,.topbar button,.btn{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #b9c0c8;background:#fff;border-radius:4px}
+.btn{cursor:pointer;text-decoration:none;color:var(--ink);display:inline-block}
+.btn.primary{background:#2a5b8c;border-color:#2a5b8c;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #4e79a7;outline-offset:1px}
+.meta{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+.notice{padding:10px 12px;border:1px solid var(--line);background:#fff;font-size:13.5px;margin-bottom:12px}
+.notice.err{border-color:#e15759;background:#fdf1f1;color:#8a2a2c}
+.notice.warn{border-color:#f28e2b;background:#fff6ec}
+.notice.ok{border-color:#76b7b2;background:#effaf9}
+
+.tabs{display:flex;gap:2px;margin-bottom:-1px;position:relative;z-index:1}
+.tabs button{font:inherit;font-size:13px;padding:7px 16px;border:1px solid var(--line);border-bottom:0;background:#e8eaed;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected=true]{background:#fff;color:var(--ink);font-weight:600}
+.tabs button:focus-visible{outline:2px solid #4e79a7}
+.dash{display:flex;gap:14px;background:#fff;padding:12px;border:1px solid var(--line)}
+.dash[hidden]{display:none}
+.chart{flex:1;min-width:0;border:1px solid #cfd3d8;padding:6px 8px 8px}
+.chart h1{font-size:24px;font-weight:600;margin:4px 0 10px;letter-spacing:.2px}
+.head{display:grid;grid-template-columns:150px 1fr;font-size:14px;font-weight:600;border-bottom:1px solid var(--grid);padding-bottom:4px}
+.head span:last-child{text-align:center;padding-right:8px}
+.row{display:grid;grid-template-columns:110px 26px 1fr;height:96px;border-bottom:1px solid var(--grid)}
+.who{font-size:13px;color:var(--muted);align-self:center;line-height:1.35;word-break:break-word;padding-right:6px}
+.yl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:600;text-align:center;align-self:center}
+.plot{position:relative;margin:10px 0 9px 34px}
+.tick{position:absolute;left:-34px;width:28px;text-align:right;font-size:11px;color:var(--muted);transform:translateY(50%)}
+.gl{position:absolute;left:0;right:0;border-top:1px solid var(--grid)}
+.bars{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr)}
+.col{position:relative;transition:opacity .2s}
+.bar{position:absolute;left:14%;right:14%;bottom:0;transition:height .35s;cursor:pointer;min-height:2px}
+.val{position:absolute;left:-10%;right:-10%;text-align:center;font-size:12.5px;white-space:nowrap;pointer-events:none}
+.foot{display:grid;grid-template-columns:136px 1fr;font-size:13px;color:var(--muted);padding-top:6px}
+.foot div{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;margin-left:34px}
+.empty{padding:60px 10px;text-align:center;color:var(--muted);font-size:14px}
+.empty.err{color:#8a2a2c}
+#loading{padding:40px;text-align:center;color:var(--muted);font-size:14px}
+#loading::after{content:"";display:inline-block;width:18px;height:18px;margin-left:8px;border:2px solid var(--grid);border-top-color:#4e79a7;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.head2{grid-template-columns:190px 1fr}
+.r2{display:grid;grid-template-columns:190px repeat(4,1fr);height:24px;border-bottom:1px solid var(--grid);align-items:end}
+.r2 .who{align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;line-height:1;word-break:normal}
+.cell{position:relative;height:100%}
+.cell .h{position:absolute;left:12%;right:12%;bottom:2px;cursor:pointer}
+.cell .t{position:absolute;left:0;right:0;top:0;text-align:center;font-size:11.5px;line-height:13px;white-space:nowrap;pointer-events:none}
+.foot2{display:grid;grid-template-columns:190px repeat(4,1fr);font-size:13px;color:var(--muted);padding-top:6px;text-align:center}
+aside{width:190px;flex:none;font-size:13px}
+aside h3{font-size:13px;font-weight:600;margin:0 0 6px}
+.sec{margin-bottom:20px}
+.list{max-height:560px;overflow:auto}
+.list.short{max-height:none}
+label.o{display:flex;align-items:center;gap:6px;padding:2px 3px;cursor:pointer;color:var(--muted);white-space:nowrap;overflow:hidden}
+label.o.on{background:var(--sel)}
+label.o span{overflow:hidden;text-overflow:ellipsis}
+input[type=checkbox]{margin:0;accent-color:#4e79a7;flex:none}
+.rng{position:relative;height:22px;margin-top:4px}
+.rng input{position:absolute;left:0;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;margin:0;height:22px;padding:0;border:0}
+.rng input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:11px;height:11px;border-radius:50%;background:#fff;border:1.5px solid #555;cursor:pointer}
+.rng input::-moz-range-thumb{pointer-events:auto;width:9px;height:9px;border-radius:50%;background:#fff;border:1.5px solid #555;cursor:pointer}
+.track{position:absolute;left:0;right:0;top:10px;height:2px;background:#bbb}
+.fill{position:absolute;top:10px;height:2px;background:#4e79a7}
+.rv{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.lg{display:flex;align-items:center;gap:6px;padding:2px 3px;cursor:pointer;color:var(--muted);border:0;background:none;width:100%;font:inherit;text-align:left}
+.lg i{width:11px;height:11px;display:inline-block}
+.lg.sel{background:var(--sel);color:var(--ink)}
+.lg:focus-visible,label.o:focus-within{outline:2px solid #4e79a7}
+.grad{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.grad i{flex:1;height:18px;background:linear-gradient(90deg,#d3e5f4,#2a5b8c)}
+#tip{position:fixed;pointer-events:none;background:#fff;border:1px solid #bbb;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:6px 9px;font-size:12px;display:none;z-index:9;line-height:1.5}
+.pres{background:#fff;border:1px solid var(--line);padding:24px}
+.pres h1{margin:0 0 2px;font-size:26px}
+.pres .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+.pres .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.pres .kpi div{border:1px solid var(--line);padding:14px 8px;text-align:center;border-top:3px solid var(--fc)}
+.pres .kpi .n{font-size:20px;font-weight:700}
+.pres .kpi .l{font-size:11.5px;color:var(--muted);margin-top:2px}
+.pres h3{font-size:14px;margin:22px 0 8px}
+.barrow{display:grid;grid-template-columns:170px 1fr 110px;align-items:center;gap:8px;margin:5px 0;font-size:13px}
+.barrow .bar{height:14px;background:#4e79a7;min-width:2px}
+.barrow .bwrap{background:#eef1f4}
+.barrow .v{text-align:right;color:var(--muted)}
+@media print{.topbar,.notice{display:none!important}}
+@media(max-width:760px){.pres .kpi{grid-template-columns:repeat(2,1fr)}.barrow{grid-template-columns:110px 1fr 90px}.dash{flex-direction:column}aside{width:100%}.row{grid-template-columns:80px 22px 1fr}.head,.foot{grid-template-columns:110px 1fr}.val{font-size:10px}
+.r2,.foot2{grid-template-columns:110px repeat(4,1fr)}.head2{grid-template-columns:110px 1fr}.cell .t{font-size:9px}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="tabs" role="tablist">
-    <button role="tab" id="tab1" aria-selected="true">SALES PIPELINE</button>
-    <button role="tab" id="tab2" aria-selected="false">DASHBOARD PT</button>
+  <div class="topbar">
+    <h2>Sales Pipeline Dashboard</h2>
+    <span class="meta" id="meta"></span>
   </div>
-  <section class="dash" id="d1">
-    <div class="chart"><h1>SALES PIPELINE</h1>
-      <div class="head"><span>Owner</span><span>Staging Category</span></div>
-      <div id="rows1"></div><div class="foot"><span></span><div id="cats1"></div></div></div>
-    <aside id="side1"></aside>
-  </section>
-  <section class="dash" id="d2" hidden>
-    <div class="chart"><h1>PT</h1>
-      <div class="head head2"><span>Sold To Party</span><span>Staging Category</span></div>
-      <div id="rows2"></div><div class="foot2"><span></span><span id="c2a"></span><span id="c2b"></span><span id="c2c"></span><span id="c2d"></span></div></div>
-    <aside id="side2"></aside>
-  </section>
+  <div class="notice" style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end">
+    <div><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:3px">Sales Pipeline (.xlsx)</label><input type="file" id="f_pipeline" accept=".xlsx,.xls"></div>
+    <div><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:3px">Closewon Contract (.xlsx)</label><input type="file" id="f_contract" accept=".xlsx,.xls"></div>
+    <div><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:3px">Closewon Non Contract (.xlsx)</label><input type="file" id="f_noncontract" accept=".xlsx,.xls"></div>
+    <div style="flex:1;min-width:240px"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:3px">Owner terdeteksi (centang yang ingin ditampilkan)</label><div id="ownerBox" style="max-height:84px;overflow:auto;border:1px solid #b9c0c8;border-radius:4px;padding:6px 8px;font-size:12.5px;color:var(--muted)">Unggah ketiga file untuk mendeteksi owner secara otomatis.</div></div>
+    <button class="btn primary" id="btnProcess" disabled>Proses &amp; Buat Dashboard</button>
+    <button class="btn" id="btnPivot" disabled>Unduh Excel Pivot</button>
+    <button class="btn" id="btnPres" disabled>Tampilan Presentasi</button>
+    <button class="btn" id="btnClosePres" hidden>Kembali ke Dashboard</button>
+    <button class="btn" id="btnDemo">Lihat Demo</button>
+  </div>
+  <div id="msg"></div>
+  <div id="root"></div>
+  <section id="presentation" class="pres" hidden></section>
 </div>
-<div id="tip"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
-const D1={"cats": ["Won", "Hot Prospect", "Potential", "Forecast"], "rows": [["ABDURAHMAN HARITS #", [1286962565.0, 8185565712.0, 4489678773.0, 16066591960.0]], ["ELVAN PRATAMA", [5372249277.64, 68567420258.33, 20135524706.6, 20622924084.6]], ["HENDRA NURJAYA AL-KHOLIS #", [2090654878.0, 10515617942.0, 5840405517.0, 18862921253.0]], ["KHULAIFI ALKATSIRI #", [1458439069.0, 13068443017.0, 2597634578.0, 14398006810.0]], ["MUHAMMAD THAREQ RENALDI", [6025547360.0, 9018708725.0, 20634185654.0, 33328472050.0]], ["NAUFAL AMIR #", [4368078212.8, 13960714724.44, 11785848641.0, 35436900961.0]], ["ZEIN DIO ARRYADITHA", [335143374.0, 8364950078.0, 6443131064.0, 18330359661.0]]]}, D2={"cats": ["Forecast", "Hot Prospect", "Potential", "Won"], "rows": [["BUMA BINUNGAN", [null, null, 1200000000.0, null]], ["BUMA IPR", [null, 2.0, null, null]], ["PRATAMA NUSA SENTOSA", [540000000.0, null, null, null]], ["PT ANTAREJA MAHADA MAKMUR", [1293456200.0, 951354759.0, null, null]], ["PT ARTHA TUNGGAL MANDIRI", [null, 2618946.0, null, 8294375.0]], ["PT ASET SOLUSI TERBARUKAN", [null, 0.0, null, null]], ["PT BAYAN RESOURCES TBK.", [null, 69790000.0, null, null]], ["PT BIMA NUSA INTERNASIONAL", [null, 17000000.0, null, 18000000.0]], ["PT BINA PERTIWI", [2222050000.0, 4020000.0, null, null]], ["PT BUKIT MAKMUR MANDIRI UTAMA", [19043057921.0, 15528195902.0, 6929245764.0, 2251645649.0]], ["PT CAKRA PERKASA JAYAMULIA", [null, null, null, 2373740.0]], ["PT INDO MURO KENCANA", [null, null, null, 45000000.0]], ["PT INDONESIA PRATAMA", [null, 439949000.0, 19776250.0, null]], ["PT KALIMANTAN CITRA BARA", [null, 703800900.0, null, null]], ["PT KALIMANTAN PRIMA PERSADA", [1152000000.0, 683274624.0, 780495951.0, 6029346.0]], ["PT KARUNIA ARMADA INDONESIA", [2705708395.0, null, 1821434586.0, null]], ["PT KUMALA BAHTERA UTAMA", [1354500000.0, null, 348000000.0, null]], ["PT MADHANI TALATAH NUSANTARA", [66000000.0, 867772153.07, 195000000.0, 13648160.0]], ["PT MANDALA KARYA PRIMA", [3501350000.0, 1103290579.0, 114750000.0, 303105836.0]], ["PT MANDIRI HERINDO ADIPERKASA TBK", [0.0, 1325754600.0, 55162500.0, null]], ["PT MUTIARA TANJUNG LESTARI", [6740033301.0, 11278958432.0, 4306459480.0, 380408581.0]], ["PT Nusatama Berkah Tbk", [null, null, 34213089.0, null]], ["PT PAMAPERSADA NUSANTARA", [29993162833.6, 47555366342.7, 15314465353.6, 5512292325.44]], ["PT PETROSEA TBK", [null, 146000000.0, null, 7427000.0]], ["PT PRIMA SARANA GEMILANG", [null, 56000000.0, null, null]], ["PT PUTRA PERKASA ABADI", [8678397000.0, 1996946479.0, 2984409553.0, 2065195487.0]], ["PT SAPTAINDRA SEJATI", [25766431050.0, 9236043317.0, 23933703776.0, 5172942693.0]], ["PT SIMS JAYA KALTIM", [380100000.0, 407980000.0, 403400000.0, null]], ["PT TRINITY AUTO", [null, 0.0, null, 13653211.0]], ["PT. PELSART TAMBANG KENCANA", [null, 140000000.0, 380000000.0, null]], ["THIESS CONTRACTORS INDONESIA", [null, null, null, 1742096.0]], ["UNITED TRACTORS TBK", [53381552379.0, 38847100921.0, 12980493031.0, 5135316237.0]]]};
-const COL=["--won","--hot","--pot","--fc"];
-const fmt=n=>Math.round(n).toLocaleString("id-ID");
-const $=id=>document.getElementById(id), tip=$("tip");
-const showTip=(el,html)=>{el.onmousemove=e=>{tip.style.display="block";tip.style.left=e.clientX+14+"px";tip.style.top=e.clientY+14+"px";tip.innerHTML=html};el.onmouseleave=()=>tip.style.display="none"};
+const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "staging_categories": ["Won", "Hot Prospect", "Potential", "Forecast"], "owners": ["ABDURAHMAN HARITS #", "ELVAN PRATAMA", "NAUFAL AMIR #"], "parties": ["PT ALFA TAMBANG UTAMA", "PT BETA KARYA MANDIRI", "PT DELTA LOGISTIK PRIMA", "PT GAMMA ENERGI NUSANTARA", "PT OMEGA KONSTRUKSI", "PT SIGMA BARA SEJAHTERA"], "est_revenue_min": 0, "est_revenue_max": 4800000000, "pivot_owner": [{"name": "ABDURAHMAN HARITS #", "Won": 9918000000.0, "Hot Prospect": 2618000000.0, "Potential": 7463000000.0, "Forecast": 1761000000.0, "grand_total": 21760000000.0}, {"name": "ELVAN PRATAMA", "Won": 863000000.0, "Hot Prospect": 20059000000.0, "Potential": 7178000000.0, "Forecast": 1730000000.0, "grand_total": 29830000000.0}, {"name": "NAUFAL AMIR #", "Won": 10307000000.0, "Hot Prospect": 10150000000.0, "Potential": 12959000000.0, "Forecast": 2461000000.0, "grand_total": 35877000000.0}], "pivot_party": [{"name": "PT ALFA TAMBANG UTAMA", "Won": 5000000000.0, "Hot Prospect": 39000000.0, "Potential": 6439000000.0, "Forecast": 470000000.0, "grand_total": 11948000000.0}, {"name": "PT BETA KARYA MANDIRI", "Won": 39000000.0, "Hot Prospect": 5309000000.0, "Potential": 1492000000.0, "Forecast": 159000000.0, "grand_total": 6999000000.0}, {"name": "PT DELTA LOGISTIK PRIMA", "Won": 5081000000.0, "Hot Prospect": 350000000.0, "Potential": 7339000000.0, "Forecast": 2000000.0, "grand_total": 12772000000.0}, {"name": "PT GAMMA ENERGI NUSANTARA", "Won": 5659000000.0, "Hot Prospect": 2388000000.0, "Potential": 6441000000.0, "Forecast": 1950000000.0, "grand_total": 16438000000.0}, {"name": "PT OMEGA KONSTRUKSI", "Won": 4959000000.0, "Hot Prospect": 5150000000.0, "Potential": 389000000.0, "Forecast": 1610000000.0, "grand_total": 12108000000.0}, {"name": "PT SIGMA BARA SEJAHTERA", "Won": 350000000.0, "Hot Prospect": 19591000000.0, "Potential": 5500000000.0, "Forecast": 1761000000.0, "grand_total": 27202000000.0}], "rows": [{"created_on": "2026-03-23T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Direct Part", "est_close_date": "2026-07-19T00:00:00", "est_revenue": 39000000, "staging_category": "Forecast"}, {"created_on": "2026-10-30T00:00:00", "topic": "SIS PART VESSEL JAN", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Direct Part", "est_close_date": "2027-01-09T00:00:00", "est_revenue": 120000000, "staging_category": "Forecast"}, {"created_on": "2026-02-09T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2027-03-17T00:00:00", "est_revenue": 0, "staging_category": "Forecast"}, {"created_on": "2026-04-29T00:00:00", "topic": "HYDRAULIC PUMP NOV", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Rebuild", "est_close_date": "2026-06-26T00:00:00", "est_revenue": 2000000, "staging_category": "Forecast"}, {"created_on": "2026-10-17T00:00:00", "topic": "PPA PART CRUSHER DES", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Direct Part", "est_close_date": "2026-07-31T00:00:00", "est_revenue": 350000000, "staging_category": "Forecast"}, {"created_on": "2026-06-11T00:00:00", "topic": "HYDRAULIC PUMP JAN", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Direct Part", "est_close_date": "2027-03-20T00:00:00", "est_revenue": 1250000000, "staging_category": "Forecast"}, {"created_on": "2026-07-14T00:00:00", "topic": "SIS PART VESSEL JAN", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Direct Part", "est_close_date": "2026-07-01T00:00:00", "est_revenue": 350000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-04-20T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Service", "est_close_date": "2027-01-25T00:00:00", "est_revenue": 350000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-08-25T00:00:00", "topic": "KPP RIMS DES", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Direct Part", "est_close_date": "2026-10-03T00:00:00", "est_revenue": 0, "staging_category": "Hot Prospect"}, {"created_on": "2026-06-07T00:00:00", "topic": "HYDRAULIC PUMP DES", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Rebuild", "est_close_date": "2026-10-26T00:00:00", "est_revenue": 350000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-02-11T00:00:00", "topic": "SIS PART VESSEL JAN", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-08-17T00:00:00", "est_revenue": 120000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-08-08T00:00:00", "topic": "SIS PART VESSEL JAN", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2026-11-08T00:00:00", "est_revenue": 39000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-07-03T00:00:00", "topic": "HYDRAULIC PUMP DES", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2026-07-18T00:00:00", "est_revenue": 39000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-09-04T00:00:00", "topic": "SIS PART VESSEL NOV", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2027-03-23T00:00:00", "est_revenue": 1250000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-08-21T00:00:00", "topic": "KPP RIMS JAN", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-06-12T00:00:00", "est_revenue": 120000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-04-01T00:00:00", "topic": "HYDRAULIC PUMP NOV", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-10-26T00:00:00", "est_revenue": 2000000, "staging_category": "Potential"}, {"created_on": "2026-05-11T00:00:00", "topic": "OVERHAUL ENGINE DES", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2027-01-16T00:00:00", "est_revenue": 120000000, "staging_category": "Potential"}, {"created_on": "2026-10-13T00:00:00", "topic": "KPP RIMS NOV", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-12-30T00:00:00", "est_revenue": 39000000, "staging_category": "Potential"}, {"created_on": "2026-07-18T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-09-27T00:00:00", "est_revenue": 1250000000, "staging_category": "Potential"}, {"created_on": "2026-01-11T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Service", "est_close_date": "2026-06-03T00:00:00", "est_revenue": 2000000, "staging_category": "Potential"}, {"created_on": "2026-08-07T00:00:00", "topic": "HYDRAULIC PUMP DES", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-08-04T00:00:00", "est_revenue": 1250000000, "staging_category": "Potential"}, {"created_on": "2026-09-25T00:00:00", "topic": "HYDRAULIC PUMP JAN", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Rebuild", "est_close_date": "2027-01-20T00:00:00", "est_revenue": 4800000000, "staging_category": "Potential"}, {"created_on": "2026-04-14T00:00:00", "topic": "PPA PART CRUSHER DES", "owner": "ELVAN PRATAMA", "area": "Site Sumsel", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2027-02-21T00:00:00", "est_revenue": 120000000, "staging_category": "Forecast"}, {"created_on": "2026-07-06T00:00:00", "topic": "SIS PART VESSEL NOV", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Service", "est_close_date": "2026-09-08T00:00:00", "est_revenue": 1250000000, "staging_category": "Forecast"}, {"created_on": "2026-06-30T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2026-09-21T00:00:00", "est_revenue": 0, "staging_category": "Forecast"}, {"created_on": "2026-09-02T00:00:00", "topic": "PPA PART CRUSHER DES", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Service", "est_close_date": "2026-06-01T00:00:00", "est_revenue": 120000000, "staging_category": "Forecast"}, {"created_on": "2026-06-30T00:00:00", "topic": "SIS PART VESSEL JAN", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Service", "est_close_date": "2026-09-11T00:00:00", "est_revenue": 120000000, "staging_category": "Forecast"}, {"created_on": "2026-04-06T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Direct Part", "est_close_date": "2026-12-20T00:00:00", "est_revenue": 120000000, "staging_category": "Forecast"}, {"created_on": "2026-02-17T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2027-01-25T00:00:00", "est_revenue": 4800000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-03-20T00:00:00", "topic": "HYDRAULIC PUMP JAN", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-08-19T00:00:00", "est_revenue": 350000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-10-12T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Rebuild", "est_close_date": "2026-07-23T00:00:00", "est_revenue": 350000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-03-17T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-09-17T00:00:00", "est_revenue": 39000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-09-18T00:00:00", "topic": "PPA PART CRUSHER JAN", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Service", "est_close_date": "2027-01-01T00:00:00", "est_revenue": 4800000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-02-05T00:00:00", "topic": "KPP RIMS DES", "owner": "ELVAN PRATAMA", "area": "Site Sumsel", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2027-01-02T00:00:00", "est_revenue": 4800000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-09-18T00:00:00", "topic": "PPA PART CRUSHER JAN", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2026-06-10T00:00:00", "est_revenue": 4800000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-08-18T00:00:00", "topic": "PPA PART CRUSHER JAN", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-08-12T00:00:00", "est_revenue": 120000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-03-07T00:00:00", "topic": "HYDRAULIC PUMP NOV", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2027-02-27T00:00:00", "est_revenue": 350000000, "staging_category": "Potential"}, {"created_on": "2026-09-09T00:00:00", "topic": "SIS PART VESSEL JAN", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-10-20T00:00:00", "est_revenue": 0, "staging_category": "Potential"}, {"created_on": "2026-02-24T00:00:00", "topic": "HYDRAULIC PUMP DES", "owner": "ELVAN PRATAMA", "area": "Site Sumsel", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Direct Part", "est_close_date": "2027-01-13T00:00:00", "est_revenue": 39000000, "staging_category": "Potential"}, {"created_on": "2026-09-20T00:00:00", "topic": "HYDRAULIC PUMP JAN", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2027-01-18T00:00:00", "est_revenue": 350000000, "staging_category": "Potential"}, {"created_on": "2026-10-05T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2026-10-11T00:00:00", "est_revenue": 350000000, "staging_category": "Potential"}, {"created_on": "2026-04-18T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Direct Part", "est_close_date": "2027-01-13T00:00:00", "est_revenue": 39000000, "staging_category": "Potential"}, {"created_on": "2026-05-08T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-08-02T00:00:00", "est_revenue": 4800000000, "staging_category": "Potential"}, {"created_on": "2026-03-25T00:00:00", "topic": "KPP RIMS NOV", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Direct Part", "est_close_date": "2026-09-21T00:00:00", "est_revenue": 1250000000, "staging_category": "Potential"}, {"created_on": "2026-09-15T00:00:00", "topic": "KPP RIMS NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Direct Part", "est_close_date": "2026-09-02T00:00:00", "est_revenue": 120000000, "staging_category": "Forecast"}, {"created_on": "2026-02-11T00:00:00", "topic": "KPP RIMS NOV", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-07-13T00:00:00", "est_revenue": 350000000, "staging_category": "Forecast"}, {"created_on": "2026-04-28T00:00:00", "topic": "SIS PART VESSEL DES", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2026-11-21T00:00:00", "est_revenue": 350000000, "staging_category": "Forecast"}, {"created_on": "2026-08-06T00:00:00", "topic": "KPP RIMS JAN", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Direct Part", "est_close_date": "2026-10-01T00:00:00", "est_revenue": 0, "staging_category": "Forecast"}, {"created_on": "2026-03-28T00:00:00", "topic": "KPP RIMS NOV", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-11-04T00:00:00", "est_revenue": 350000000, "staging_category": "Forecast"}, {"created_on": "2026-04-20T00:00:00", "topic": "KPP RIMS DES", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Rebuild", "est_close_date": "2026-10-17T00:00:00", "est_revenue": 39000000, "staging_category": "Forecast"}, {"created_on": "2026-05-13T00:00:00", "topic": "SIS PART VESSEL NOV", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2027-03-10T00:00:00", "est_revenue": 2000000, "staging_category": "Forecast"}, {"created_on": "2026-09-25T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Direct Part", "est_close_date": "2027-01-08T00:00:00", "est_revenue": 1250000000, "staging_category": "Forecast"}, {"created_on": "2026-10-11T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Rebuild", "est_close_date": "2026-09-26T00:00:00", "est_revenue": 39000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-04-16T00:00:00", "topic": "PPA PART CRUSHER DES", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-06-08T00:00:00", "est_revenue": 0, "staging_category": "Hot Prospect"}, {"created_on": "2026-05-15T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Direct Part", "est_close_date": "2026-12-13T00:00:00", "est_revenue": 4800000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-09-21T00:00:00", "topic": "KPP RIMS JAN", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-06-24T00:00:00", "est_revenue": 120000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-04-09T00:00:00", "topic": "PPA PART CRUSHER DES", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-12-04T00:00:00", "est_revenue": 39000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-06-19T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-09-02T00:00:00", "est_revenue": 0, "staging_category": "Hot Prospect"}, {"created_on": "2026-06-25T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Service", "est_close_date": "2026-09-11T00:00:00", "est_revenue": 2000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-09-20T00:00:00", "topic": "SIS PART VESSEL NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-12-22T00:00:00", "est_revenue": 350000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-01-26T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Service", "est_close_date": "2026-09-28T00:00:00", "est_revenue": 0, "staging_category": "Hot Prospect"}, {"created_on": "2026-10-31T00:00:00", "topic": "HYDRAULIC PUMP NOV", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2026-12-17T00:00:00", "est_revenue": 4800000000, "staging_category": "Hot Prospect"}, {"created_on": "2026-06-20T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2026-08-14T00:00:00", "est_revenue": 0, "staging_category": "Hot Prospect"}, {"created_on": "2026-08-12T00:00:00", "topic": "HYDRAULIC PUMP NOV", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Rebuild", "est_close_date": "2026-06-09T00:00:00", "est_revenue": 4800000000, "staging_category": "Potential"}, {"created_on": "2026-10-31T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-12-02T00:00:00", "est_revenue": 0, "staging_category": "Potential"}, {"created_on": "2026-07-16T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Rebuild", "est_close_date": "2027-02-28T00:00:00", "est_revenue": 1250000000, "staging_category": "Potential"}, {"created_on": "2026-05-10T00:00:00", "topic": "OVERHAUL ENGINE DES", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2027-02-13T00:00:00", "est_revenue": 350000000, "staging_category": "Potential"}, {"created_on": "2026-02-21T00:00:00", "topic": "HYDRAULIC PUMP NOV", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Rebuild", "est_close_date": "2026-10-08T00:00:00", "est_revenue": 4800000000, "staging_category": "Potential"}, {"created_on": "2026-02-12T00:00:00", "topic": "KPP RIMS NOV", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2027-01-22T00:00:00", "est_revenue": 120000000, "staging_category": "Potential"}, {"created_on": "2026-02-13T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Direct Part", "est_close_date": "2026-09-10T00:00:00", "est_revenue": 0, "staging_category": "Potential"}, {"created_on": "2026-03-21T00:00:00", "topic": "KPP RIMS DES", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Rebuild", "est_close_date": "2026-11-03T00:00:00", "est_revenue": 350000000, "staging_category": "Potential"}, {"created_on": "2026-10-22T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Direct Part", "est_close_date": "2026-10-16T00:00:00", "est_revenue": 1250000000, "staging_category": "Potential"}, {"created_on": "2026-02-24T00:00:00", "topic": "PPA PART CRUSHER JAN", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Service", "est_close_date": "2027-02-20T00:00:00", "est_revenue": 39000000, "staging_category": "Potential"}, {"created_on": "2026-08-30T00:00:00", "topic": "OVERHAUL ENGINE DES", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Rebuild", "est_close_date": "2026-11-07T00:00:00", "est_revenue": 0, "staging_category": "Potential"}, {"created_on": "2026-10-09T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Service", "est_close_date": "2027-01-29T00:00:00", "est_revenue": 0, "staging_category": "Won"}, {"created_on": "2026-08-03T00:00:00", "topic": "PPA PART CRUSHER JAN", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Direct Part", "est_close_date": "2026-06-18T00:00:00", "est_revenue": 120000000, "staging_category": "Won"}, {"created_on": "2026-02-06T00:00:00", "topic": "SIS PART VESSEL DES", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Rebuild", "est_close_date": "2026-11-21T00:00:00", "est_revenue": 39000000, "staging_category": "Won"}, {"created_on": "2026-06-25T00:00:00", "topic": "HYDRAULIC PUMP NOV", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Rebuild", "est_close_date": "2026-11-10T00:00:00", "est_revenue": 39000000, "staging_category": "Won"}, {"created_on": "2026-06-06T00:00:00", "topic": "SIS PART VESSEL JAN", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Rebuild", "est_close_date": "2026-06-13T00:00:00", "est_revenue": 4800000000, "staging_category": "Won"}, {"created_on": "2026-05-04T00:00:00", "topic": "SIS PART VESSEL DES", "owner": "ABDURAHMAN HARITS #", "area": "Site Sumsel", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Service", "est_close_date": "2026-10-07T00:00:00", "est_revenue": 120000000, "staging_category": "Won"}, {"created_on": "2026-03-13T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-08-17T00:00:00", "est_revenue": 350000000, "staging_category": "Won"}, {"created_on": "2026-05-05T00:00:00", "topic": "KPP RIMS DES", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT SIGMA BARA SEJAHTERA", "transaction_type": "Service", "est_close_date": "2026-07-11T00:00:00", "est_revenue": 350000000, "staging_category": "Won"}, {"created_on": "2026-04-16T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2026-06-18T00:00:00", "est_revenue": 120000000, "staging_category": "Won"}, {"created_on": "2026-10-14T00:00:00", "topic": "HYDRAULIC PUMP DES", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2026-07-07T00:00:00", "est_revenue": 39000000, "staging_category": "Won"}, {"created_on": "2026-04-21T00:00:00", "topic": "SIS PART VESSEL DES", "owner": "ELVAN PRATAMA", "area": "Site Kaltim", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Rebuild", "est_close_date": "2026-08-28T00:00:00", "est_revenue": 2000000, "staging_category": "Won"}, {"created_on": "2026-08-06T00:00:00", "topic": "OVERHAUL ENGINE JAN", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Direct Part", "est_close_date": "2027-03-03T00:00:00", "est_revenue": 4800000000, "staging_category": "Won"}, {"created_on": "2026-03-08T00:00:00", "topic": "KPP RIMS DES", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Rebuild", "est_close_date": "2026-12-08T00:00:00", "est_revenue": 39000000, "staging_category": "Won"}, {"created_on": "2026-04-16T00:00:00", "topic": "OVERHAUL ENGINE NOV", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-08-18T00:00:00", "est_revenue": 39000000, "staging_category": "Won"}, {"created_on": "2026-10-28T00:00:00", "topic": "PPA PART CRUSHER DES", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Service", "est_close_date": "2026-10-04T00:00:00", "est_revenue": 350000000, "staging_category": "Won"}, {"created_on": "2026-10-01T00:00:00", "topic": "PPA PART CRUSHER JAN", "owner": "NAUFAL AMIR #", "area": "Muara Teweh", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Rebuild", "est_close_date": "2026-06-19T00:00:00", "est_revenue": 0, "staging_category": "Won"}, {"created_on": "2026-09-05T00:00:00", "topic": "PPA PART CRUSHER DES", "owner": "ABDURAHMAN HARITS #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-10-01T00:00:00", "est_revenue": 0, "staging_category": "Won"}, {"created_on": "2026-04-12T00:00:00", "topic": "HYDRAULIC PUMP JAN", "owner": "ABDURAHMAN HARITS #", "area": "Muara Teweh", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2027-02-21T00:00:00", "est_revenue": 4800000000, "staging_category": "Won"}, {"created_on": "2026-08-22T00:00:00", "topic": "HYDRAULIC PUMP DES", "owner": "ELVAN PRATAMA", "area": "Site Sumsel", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Direct Part", "est_close_date": "2026-11-30T00:00:00", "est_revenue": 2000000, "staging_category": "Won"}, {"created_on": "2026-01-24T00:00:00", "topic": "KPP RIMS DES", "owner": "ELVAN PRATAMA", "area": "Muara Teweh", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-10-12T00:00:00", "est_revenue": 0, "staging_category": "Won"}, {"created_on": "2026-01-10T00:00:00", "topic": "KPP RIMS DES", "owner": "ELVAN PRATAMA", "area": "Site Sumsel", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Service", "est_close_date": "2026-11-10T00:00:00", "est_revenue": 0, "staging_category": "Won"}, {"created_on": "2026-04-19T00:00:00", "topic": "SIS PART VESSEL DES", "owner": "ELVAN PRATAMA", "area": "Site Sumsel", "sold_to_party": "PT ALFA TAMBANG UTAMA", "transaction_type": "Service", "est_close_date": "2026-12-29T00:00:00", "est_revenue": 0, "staging_category": "Won"}, {"created_on": "2026-10-13T00:00:00", "topic": "PPA PART CRUSHER JAN", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT OMEGA KONSTRUKSI", "transaction_type": "Direct Part", "est_close_date": "2026-08-26T00:00:00", "est_revenue": 120000000, "staging_category": "Won"}, {"created_on": "2026-05-23T00:00:00", "topic": "OVERHAUL ENGINE DES", "owner": "NAUFAL AMIR #", "area": "Site Sumsel", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Service", "est_close_date": "2026-06-30T00:00:00", "est_revenue": 39000000, "staging_category": "Won"}, {"created_on": "2026-10-22T00:00:00", "topic": "KPP RIMS DES", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT GAMMA ENERGI NUSANTARA", "transaction_type": "Direct Part", "est_close_date": "2026-09-12T00:00:00", "est_revenue": 120000000, "staging_category": "Won"}, {"created_on": "2026-07-31T00:00:00", "topic": "PPA PART CRUSHER NOV", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT DELTA LOGISTIK PRIMA", "transaction_type": "Direct Part", "est_close_date": "2026-08-01T00:00:00", "est_revenue": 4800000000, "staging_category": "Won"}, {"created_on": "2026-07-31T00:00:00", "topic": "HYDRAULIC PUMP DES", "owner": "NAUFAL AMIR #", "area": "Site Kaltim", "sold_to_party": "PT BETA KARYA MANDIRI", "transaction_type": "Direct Part", "est_close_date": "2026-06-11T00:00:00", "est_revenue": 0, "staging_category": "Won"}]};
+</script>
 
-// ---- komponen filter bersama ----
-function checklist(host,title,names,set,cb,short){
-  const box=document.createElement("div");box.className="sec";host.appendChild(box);
-  function draw(){
-    const n=set.size,t=names.length;
-    box.innerHTML=`<h3>${title}</h3><div class="list ${short?"short":""}"><label class="o"><input type="checkbox" id="${host.id}all" ${n===t?"checked":""}><span>(All)</span></label>`+
-      names.map((o,i)=>`<label class="o ${set.has(o)?"on":""}" title="${o}"><input type="checkbox" data-i="${i}" ${set.has(o)?"checked":""}><span>${o}</span></label>`).join("")+"</div>";
-    const all=box.querySelector("#"+host.id+"all");all.indeterminate=n>0&&n<t;
-    all.onchange=e=>{(e.target.checked?names:[]).length?names.forEach(x=>set.add(x)):set.clear();draw();cb()};
-    box.querySelectorAll("[data-i]").forEach(c=>c.onchange=()=>{const keep=box.querySelector(".list").scrollTop,o=names[c.dataset.i];c.checked?set.add(o):set.delete(o);draw();box.querySelector(".list").scrollTop=keep;cb()});
+<script>
+/**
+ * Dashboard interaktif (vanilla JS, tanpa library).
+ * Pemakaian:  mountDashboard(elemenRoot, data)
+ * `data` = objek ringkasan dari flat_converter.build_json_summary():
+ *   { pivot_owner:[{name, <staging>: angka, grand_total}],
+ *     pivot_party:[{name, <staging>: angka, grand_total}],
+ *     staging_categories, est_revenue_min, est_revenue_max, rows, ... }
+ * Nilai null = tidak ada data (batang tidak digambar).
+ */
+(function () {
+  const CAT_COLOR = { "Won": "--won", "Hot Prospect": "--hot", "Potential": "--pot", "Forecast": "--fc" };
+  const fmt = (n) => Math.round(n).toLocaleString("id-ID");
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // Normalisasi format baru (build_json_summary) ke format internal {names, cats, values}
+  function normPivot(pivot, cats) {
+    if (!Array.isArray(pivot) || !pivot.length) return { names: [], cats, values: [] };
+    const names = pivot.map((p) => p.name);
+    const values = pivot.map((p) => cats.map((c) => {
+      const v = p[c];
+      return (v === null || v === undefined) ? null : Number(v);
+    }));
+    return { names, cats, values };
   }
-  draw();
-}
-function range(host,min,max,st,cb){
-  min=Math.floor(min);max=Math.ceil(max);
-  const box=document.createElement("div");box.className="sec";
-  box.innerHTML=`<h3>Est Revenue</h3><div class="rv"><span class="lo"></span><span class="hi"></span></div><div class="rng"><div class="track"></div><div class="fill"></div><input type="range" aria-label="Est Revenue minimum"><input type="range" aria-label="Est Revenue maksimum"></div>`;
-  host.appendChild(box);
-  const [a,b]=box.querySelectorAll("input"),fill=box.querySelector(".fill");
-  [a,b].forEach(r=>{r.min=min;r.max=max;r.step=1});a.value=min;b.value=max;
-  function go(e){
-    let x=+a.value,y=+b.value;
-    if(x>y){if(e&&e.target===a){x=y;a.value=x}else{y=x;b.value=y}}
-    st.lo=x;st.hi=y;const p=v=>(v-min)/(max-min)*100;
-    fill.style.left=p(x)+"%";fill.style.width=(p(y)-p(x))+"%";
-    a.style.zIndex=p(x)>50?3:1;
-    box.querySelector(".lo").textContent=fmt(x);box.querySelector(".hi").textContent=fmt(y);cb();
+
+  const nums = (rows) => rows.flatMap((r) => r[1]).filter((v) => typeof v === "number");
+
+  // batas sumbu "rapi" (mis. 68,5 miliar -> 80B) dan label sumbu (B/M/K)
+  function niceMax(v) {
+    if (!(v > 0)) return 1;
+    const e = Math.pow(10, Math.floor(Math.log10(v)));
+    const f = v / e;
+    const step = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((s) => f <= s) || 10;
+    return step * e;
   }
-  a.oninput=b.oninput=go;go();
-}
+  function fmtAxis(n) {
+    if (n === 0) return "0";
+    const u = [[1e12, "T"], [1e9, "B"], [1e6, "M"], [1e3, "K"]].find(([d]) => n >= d);
+    const s = u ? (n / u[0]).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + u[1] : String(n);
+    return s;
+  }
 
-// ---- Dashboard 1: SALES PIPELINE ----
-const s1={owners:new Set(D1.rows.map(r=>r[0])),lo:0,hi:0,hl:null},AX=80e9;
-const all1=D1.rows.flatMap(r=>r[1]).filter(v=>v!=null),MIN1=Math.min(...all1),MAX1=Math.max(...all1);
-$("cats1").innerHTML=D1.cats.map(c=>`<span>${c}</span>`).join("");
-function draw1(){
-  const rows=D1.rows.filter(r=>s1.owners.has(r[0]));
-  if(!rows.length){$("rows1").innerHTML='<div class="empty">Tidak ada owner yang dipilih. Centang minimal satu owner di sebelah kanan.</div>';return}
-  $("rows1").innerHTML=rows.map(([o,vals])=>{
-    const cols=vals.map((v,i)=>{
-      if(v==null||v<s1.lo||v>s1.hi)return '<div class="col"></div>';
-      const h=v/AX*100,dim=s1.hl!==null&&s1.hl!==i;
-      return `<div class="col" style="opacity:${dim?.22:1}"><div class="bar" style="height:${h}%;background:var(${COL[i]})" data-o="${o}" data-i="${i}" data-v="${v}"></div><div class="val" style="bottom:calc(${h}% + 3px)">${fmt(v)}</div></div>`}).join("");
-    return `<div class="row"><div class="who">${o}</div><div class="yl">Est Revenue</div><div class="plot"><span class="tick" style="bottom:100%">80B</span><span class="tick" style="bottom:50%">40B</span><span class="tick" style="bottom:0">0B</span><div class="gl" style="bottom:100%"></div><div class="gl" style="bottom:50%"></div><div class="gl" style="bottom:0"></div><div class="bars">${cols}</div></div></div>`}).join("");
-  $("rows1").querySelectorAll(".bar").forEach(b=>{
-    showTip(b,`<b>${b.dataset.o}</b><br>${D1.cats[b.dataset.i]}<br>Est Revenue: ${fmt(+b.dataset.v)}`);
-    b.onclick=()=>{s1.hl=s1.hl===+b.dataset.i?null:+b.dataset.i;legend1();draw1()};
-  });
-}
-function legend1(){
-  $("leg1").innerHTML=D1.cats.map((c,i)=>`<button class="lg ${s1.hl===i?"sel":""}" data-i="${i}" aria-pressed="${s1.hl===i}"><i style="background:var(${COL[i]})"></i>${c}</button>`).join("");
-  $("leg1").querySelectorAll(".lg").forEach(b=>b.onclick=()=>{s1.hl=s1.hl===+b.dataset.i?null:+b.dataset.i;legend1();draw1()});
-}
-checklist($("side1"),"Owner",D1.rows.map(r=>r[0]),s1.owners,draw1,true);
-range($("side1"),MIN1,MAX1,s1,draw1);
-$("side1").insertAdjacentHTML("beforeend",'<div class="sec"><h3>Staging Category</h3><div id="leg1"></div></div>');
-legend1();draw1();
+  let tip;
+  function showTip(el, html) {
+    if (!tip) { tip = document.createElement("div"); tip.id = "tip"; document.body.appendChild(tip); }
+    el.onmousemove = (e) => { tip.style.display = "block"; tip.style.left = e.clientX + 14 + "px"; tip.style.top = e.clientY + 14 + "px"; tip.innerHTML = html; };
+    el.onmouseleave = () => { tip.style.display = "none"; };
+  }
 
-// ---- Dashboard 2: DASHBOARD PT ----
-const s2={parties:new Set(D2.rows.map(r=>r[0])),lo:0,hi:0},all2=D2.rows.flatMap(r=>r[1]).filter(v=>v!=null),MIN2=Math.min(...all2),MAX2=Math.max(...all2);
-["c2a","c2b","c2c","c2d"].forEach((id,i)=>$(id).textContent=D2.cats[i]);
-const mix=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t)),C0=[211,229,244],C1=[42,91,140];
-function draw2(){
-  const rows=D2.rows.filter(r=>s2.parties.has(r[0]));
-  if(!rows.length){$("rows2").innerHTML='<div class="empty">Tidak ada Sold To Party yang dipilih. Centang minimal satu di sebelah kanan.</div>';return}
-  $("rows2").innerHTML=rows.map(([p,vals])=>`<div class="r2"><div class="who" title="${p}">${p}</div>`+vals.map((v,i)=>{
-    if(v==null||v<s2.lo||v>s2.hi)return '<div class="cell"></div>';
-    const t=v/MAX2,c=mix(C0,C1,t);
-    return `<div class="cell"><div class="t">${fmt(v)}</div><div class="h" style="height:${2+8*t}px;background:rgb(${c})" data-p="${p}" data-i="${i}" data-v="${v}"></div></div>`}).join("")+"</div>").join("");
-  $("rows2").querySelectorAll(".h").forEach(b=>showTip(b,`<b>${b.dataset.p}</b><br>${D2.cats[b.dataset.i]}<br>Est Revenue: ${fmt(+b.dataset.v)}`));
-}
-checklist($("side2"),"Sold To Party",D2.rows.map(r=>r[0]),s2.parties,draw2,false);
-range($("side2"),Math.min(0,MIN2),MAX2,s2,draw2);
-$("side2").insertAdjacentHTML("beforeend",`<div class="sec"><h3>Est Revenue</h3><div class="grad">${fmt(Math.min(0,MIN2))}<i></i>${Math.round(MAX2/1e9)}B</div></div>`);
+  // ---- komponen filter bersama ----
+  function checklist(host, title, names, set, cb, short) {
+    const box = document.createElement("div");
+    box.className = "sec";
+    host.appendChild(box);
+    function draw() {
+      const n = set.size, t = names.length;
+      box.innerHTML = `<h3>${esc(title)}</h3><div class="list ${short ? "short" : ""}"><label class="o"><input type="checkbox" class="all" ${n === t ? "checked" : ""}><span>(All)</span></label>` +
+        names.map((o, i) => `<label class="o ${set.has(o) ? "on" : ""}" title="${esc(o)}"><input type="checkbox" data-i="${i}" ${set.has(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("") + "</div>";
+      const all = box.querySelector(".all");
+      all.indeterminate = n > 0 && n < t;
+      all.onchange = (e) => { if (e.target.checked) names.forEach((x) => set.add(x)); else set.clear(); draw(); cb(); };
+      box.querySelectorAll("[data-i]").forEach((c) => (c.onchange = () => {
+        const keep = box.querySelector(".list").scrollTop, o = names[c.dataset.i];
+        c.checked ? set.add(o) : set.delete(o);
+        draw(); box.querySelector(".list").scrollTop = keep; cb();
+      }));
+    }
+    draw();
+  }
 
-// ---- tab ----
-[["tab1","d1"],["tab2","d2"]].forEach(([t,d])=>$(t).onclick=()=>{
-  ["tab1","tab2"].forEach(x=>$(x).setAttribute("aria-selected",x===t));
-  $("d1").hidden=d!=="d1";$("d2").hidden=d!=="d2"});
+  function range(host, min, max, st, cb) {
+    min = Math.floor(min); max = Math.ceil(max);
+    if (max <= min) max = min + 1;
+    const box = document.createElement("div");
+    box.className = "sec";
+    box.innerHTML = `<h3>Est Revenue</h3><div class="rv"><span class="lo"></span><span class="hi"></span></div><div class="rng"><div class="track"></div><div class="fill"></div><input type="range" aria-label="Est Revenue minimum"><input type="range" aria-label="Est Revenue maksimum"></div>`;
+    host.appendChild(box);
+    const [a, b] = box.querySelectorAll("input"), fill = box.querySelector(".fill");
+    [a, b].forEach((r) => { r.min = min; r.max = max; r.step = 1; });
+    a.value = min; b.value = max;
+    function go(e) {
+      let x = +a.value, y = +b.value;
+      if (x > y) { if (e && e.target === a) { x = y; a.value = x; } else { y = x; b.value = y; } }
+      st.lo = x; st.hi = y;
+      const p = (v) => ((v - min) / (max - min)) * 100;
+      fill.style.left = p(x) + "%"; fill.style.width = p(y) - p(x) + "%";
+      a.style.zIndex = p(x) > 50 ? 3 : 1;
+      box.querySelector(".lo").textContent = fmt(x); box.querySelector(".hi").textContent = fmt(y);
+      cb();
+    }
+    a.oninput = b.oninput = go;
+    go();
+  }
+
+  // Agregasi ulang pivot dari array rows (untuk filter granular)
+  function aggregateRows(rawRows, keyField, cats) {
+    const canon = {};
+    cats.forEach((c) => { canon[c.toLowerCase()] = c; });
+    const names = {}, sums = {};
+    for (const r of rawRows) {
+      const k = r[keyField];
+      if (!k || typeof k !== "string") continue;
+      const kl = k.trim().toLowerCase();
+      const cat = canon[String(r.staging_category || "").trim().toLowerCase()];
+      if (!cat) continue;
+      const v = r.est_revenue;
+      if (v === null || v === undefined || typeof v !== "number") continue;
+      names[kl] = k.trim();
+      sums[kl] = sums[kl] || {};
+      sums[kl][cat] = (sums[kl][cat] || 0) + v;
+    }
+    return Object.keys(names).sort().map((kl) => {
+      const slot = sums[kl];
+      const d = { name: names[kl] };
+      let total = 0;
+      for (const c of cats) {
+        d[c] = slot[c] || 0;
+        total += slot[c] || 0;
+      }
+      d.grand_total = Math.round(total * 100) / 100;
+      return d;
+    });
+  }
+
+  // ---- Dashboard 1: SALES PIPELINE (Owner x Staging Category) ----
+  function buildPipeline(sec, pivot, revMin, revMax, rawRows) {
+    const { names: ownerNames, cats: allCats, values: ownerVals } = normPivot(pivot, ["Won", "Hot Prospect", "Potential", "Forecast"]);
+    const rows = ownerNames.map((name, i) => [name, ownerVals[i]]);
+    sec.innerHTML = `<div class="chart"><h1>SALES PIPELINE</h1><div class="head"><span>Owner</span><span>Staging Category</span></div><div class="rows"></div><div class="foot"><span></span><div class="cats"></div></div></div><aside></aside>`;
+    const side = sec.querySelector("aside"), out = sec.querySelector(".rows");
+    const all = nums(rows);
+    // BUG FIX: initialize lo/hi to actual data range, not 0/0 (which filters out all positive revenue)
+    const dataMin = revMin != null ? Number(revMin) : (all.length ? Math.min(...all) : 0);
+    const dataMax = revMax != null ? Number(revMax) : (all.length ? Math.max(...all) : 1);
+    const st = { owners: new Set(rows.map((r) => r[0])), cats: new Set(allCats), lo: dataMin, hi: dataMax, hl: null };
+    const AX = niceMax(Math.max(0, ...all));
+
+    function draw() {
+      const cats = allCats.filter((c) => st.cats.has(c));
+      sec.querySelector(".cats").innerHTML = cats.map((c) => `<span>${esc(c)}</span>`).join("");
+      // Filter granular: hitung ulang pivot dari rawRows berdasarkan est_revenue range
+      let filteredRows = rawRows;
+      if (rawRows && rawRows.length) {
+        filteredRows = rawRows.filter((r) => {
+          const v = r.est_revenue;
+          if (v === null || v === undefined || typeof v !== "number") return false;
+          return v >= st.lo && v <= st.hi;
+        });
+      }
+      const agg = aggregateRows(filteredRows, "owner", cats);
+      const show = agg.filter((r) => st.owners.has(r.name));
+      if (!rows.length) { out.innerHTML = '<div class="empty">Tidak ada data Owner x Staging Category.</div>'; return; }
+      if (!show.length) { out.innerHTML = '<div class="empty">Tidak ada owner yang dipilih. Centang minimal satu owner di sebelah kanan.</div>'; return; }
+      out.innerHTML = show.map((r) => {
+        const vals = cats.map((c) => r[c]);
+        const cols = vals.map((v, i) => {
+          // BUG FIX: jangan filter nilai agregat dengan st.lo/st.hi — nilai agregat bisa jauh lebih besar dari revenue per row
+          if (v == null || v === 0) return '<div class="col"></div>';
+          const h = (v / AX) * 100, dim = st.hl !== null && st.hl !== i;
+          return `<div class="col" style="opacity:${dim ? 0.22 : 1}"><div class="bar" style="height:${h}%;background:var(${CAT_COLOR[cats[i]]})" data-o="${esc(r.name)}" data-i="${i}" data-v="${v}"></div><div class="val" style="bottom:calc(${h}% + 3px)">${fmt(v)}</div></div>`;
+        }).join("");
+        return `<div class="row"><div class="who">${esc(r.name)}</div><div class="yl">Est Revenue</div><div class="plot"><span class="tick" style="bottom:100%">${fmtAxis(AX)}</span><span class="tick" style="bottom:50%">${fmtAxis(AX / 2)}</span><span class="tick" style="bottom:0">0</span><div class="gl" style="bottom:100%"></div><div class="gl" style="bottom:50%"></div><div class="gl" style="bottom:0"></div><div class="bars" style="grid-template-columns:repeat(${cats.length},1fr)">${cols}</div></div></div>`;
+      }).join("");
+      out.querySelectorAll(".bar").forEach((b) => {
+        showTip(b, `<b>${esc(b.dataset.o)}</b><br>${esc(cats[b.dataset.i])}<br>Est Revenue: ${fmt(+b.dataset.v)}`);
+        b.onclick = () => { st.hl = st.hl === +b.dataset.i ? null : +b.dataset.i; legend(); draw(); };
+      });
+    }
+    function legend() {
+      const box = side.querySelector(".leg");
+      if (!box) return;
+      const cats = allCats.filter((c) => st.cats.has(c));
+      box.innerHTML = cats.map((c, i) => `<button class="lg ${st.hl === i ? "sel" : ""}" data-i="${i}" aria-pressed="${st.hl === i}"><i style="background:var(${CAT_COLOR[c]})"></i>${esc(c)}</button>`).join("");
+      box.querySelectorAll(".lg").forEach((b) => (b.onclick = () => { st.hl = st.hl === +b.dataset.i ? null : +b.dataset.i; legend(); draw(); }));
+    }
+    checklist(side, "Owner", rows.map((r) => r[0]), st.owners, draw, true);
+    checklist(side, "Staging Category", allCats, st.cats, draw, false);
+    range(side, dataMin, dataMax, st, draw);
+    side.insertAdjacentHTML("beforeend", '<div class="sec"><h3>Highlight</h3><div class="leg"></div></div>');
+    legend(); draw();
+  }
+
+  // ---- Dashboard 2: PT DASH (Sold To Party x Staging Category) ----
+  function buildParty(sec, pivot, revMin, revMax, rawRows) {
+    const { names: partyNames, cats: allCats, values: partyVals } = normPivot(pivot, ["Forecast", "Hot Prospect", "Potential", "Won"]);
+    const rows = partyNames.map((name, i) => [name, partyVals[i]]);
+    sec.innerHTML = `<div class="chart"><h1>PT</h1><div class="head head2"><span>Sold To Party</span><span>Staging Category</span></div><div class="rows"></div><div class="foot2"><span></span><div class="cats"></div></div></div><aside></aside>`;
+    const side = sec.querySelector("aside"), out = sec.querySelector(".rows");
+    const all = nums(rows), MAX = all.length ? Math.max(...all) : 1;
+    // BUG FIX: initialize lo/hi to row revenue range, not 0/0
+    const dataMin = revMin != null ? Number(revMin) : (all.length ? Math.min(...all) : 0);
+    const dataMax = revMax != null ? Number(revMax) : (all.length ? Math.max(...all) : 1);
+    const st = { parties: new Set(rows.map((r) => r[0])), cats: new Set(allCats), lo: dataMin, hi: dataMax };
+    const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t)), C0 = [211, 229, 244], C1 = [42, 91, 140];
+
+    function draw() {
+      const cats = allCats.filter((c) => st.cats.has(c));
+      sec.querySelector(".cats").innerHTML = cats.map((c) => `<span>${esc(c)}</span>`).join("");
+      // Filter granular: hitung ulang pivot dari rawRows berdasarkan est_revenue range
+      let filteredRows = rawRows;
+      if (rawRows && rawRows.length) {
+        filteredRows = rawRows.filter((r) => {
+          const v = r.est_revenue;
+          if (v === null || v === undefined || typeof v !== "number") return false;
+          return v >= st.lo && v <= st.hi;
+        });
+      }
+      const agg = aggregateRows(filteredRows, "sold_to_party", cats);
+      const show = agg.filter((r) => st.parties.has(r.name));
+      if (!rows.length) { out.innerHTML = '<div class="empty">Tidak ada data Sold To Party (kolom kosong di file sumber).</div>'; return; }
+      if (!show.length) { out.innerHTML = '<div class="empty">Tidak ada Sold To Party yang dipilih. Centang minimal satu di sebelah kanan.</div>'; return; }
+      out.innerHTML = show.map((r) => {
+        const vals = cats.map((c) => r[c]);
+        return `<div class="r2"><div class="who" title="${esc(r.name)}">${esc(r.name)}</div>` + vals.map((v, i) => {
+          // BUG FIX: jangan filter nilai agregat dengan st.lo/st.hi — nilai agregat bisa jauh lebih besar dari revenue per row
+          if (v == null || v === 0) return '<div class="cell"></div>';
+          const t = MAX > 0 ? Math.max(0, v) / MAX : 0, c = mix(C0, C1, t);
+          return `<div class="cell"><div class="t">${fmt(v)}</div><div class="h" style="height:${2 + 8 * t}px;background:rgb(${c})" data-p="${esc(r.name)}" data-i="${i}" data-v="${v}"></div></div>`;
+        }).join("") + "</div>";
+      }).join("");
+      out.querySelectorAll(".h").forEach((b) => showTip(b, `<b>${esc(b.dataset.p)}</b><br>${esc(cats[b.dataset.i])}<br>Est Revenue: ${fmt(+b.dataset.v)}`));
+    }
+    checklist(side, "Sold To Party", rows.map((r) => r[0]), st.parties, draw, false);
+    checklist(side, "Staging Category", allCats, st.cats, draw, false);
+    range(side, dataMin, dataMax, st, draw);
+    side.insertAdjacentHTML("beforeend", `<div class="sec"><h3>Est Revenue</h3><div class="grad">${fmt(dataMin)}<i></i>${fmtAxis(MAX)}</div></div>`);
+    draw();
+  }
+
+  window.mountDashboard = function (root, data) {
+    root.innerHTML = `<div class="tabs" role="tablist"><button role="tab" data-t="d1" aria-selected="true">SALES PIPELINE</button><button role="tab" data-t="d2" aria-selected="false">PT DASH</button></div><section class="dash" data-d="d1"></section><section class="dash" data-d="d2" hidden></section>`;
+    const s1 = root.querySelector('[data-d="d1"]'), s2 = root.querySelector('[data-d="d2"]');
+    // Pass raw values to buildPipeline/buildParty so they can distinguish 0 from null/undefined
+    const revMin = data.est_revenue_min;
+    const revMax = data.est_revenue_max;
+    const rawRows = Array.isArray(data.rows) ? data.rows : [];
+    buildPipeline(s1, data.pivot_owner, revMin, revMax, rawRows);
+    buildParty(s2, data.pivot_party, revMin, revMax, rawRows);
+    root.querySelectorAll(".tabs button").forEach((btn) => (btn.onclick = () => {
+      root.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", x === btn));
+      s1.hidden = btn.dataset.t !== "d1";
+      s2.hidden = btn.dataset.t !== "d2";
+    }));
+  };
+})();
+
+</script>
+
+<script>
+(function () {
+  const notice = (cls, html) => { document.getElementById("msg").innerHTML = html ? '<div class="notice ' + cls + '">' + html + '</div>' : ""; };
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const STAGING_CATS = ["Won", "Hot Prospect", "Potential", "Forecast"];
+  const IGNORE = new Set(["summary", "total", "grand total"]);
+  const BASE_ALIASES = {
+    owner: ["owner"], staging: ["staging category"], business_type: ["business type"],
+    created_on: ["created on"], topic: ["topic"], area: ["site triatra", "area"],
+    transaction_type: ["transaction type"], sold_to_party: ["sold to party"],
+    close_date: ["close date"], revenue: ["revenue"],
+  };
+  // Konfigurasi 3 sumber, sesuai logic coba0.ipynb
+  const SOURCE_CONFIGS = [
+    { key: "pipeline", target_stagings: ["Forecast", "Hot Prospect", "Potential"], forced_staging: null, overrides: {} },
+    { key: "contract", target_stagings: null, forced_staging: "Won", overrides: { topic: ["name"], revenue: ["total amount sales price"] } },
+    { key: "noncontract", target_stagings: null, forced_staging: "Won", overrides: { close_date: ["actual close date"], revenue: ["actual revenue"] } },
+  ];
+
+  function mergeAliases(ov) { const m = {}; for (const k in BASE_ALIASES) m[k] = BASE_ALIASES[k].slice(); for (const k in (ov || {})) m[k] = ov[k].slice(); return m; }
+  function findHeader(aoa, aliases, maxScan = 20) {
+    let bestRow = -1, bestMap = {}, bestScore = 0;
+    for (let r = 0; r < Math.min(maxScan, aoa.length); r++) {
+      const row = aoa[r] || [], texts = {};
+      row.forEach((v, c) => { if (typeof v === "string" && v.trim()) texts[c] = v.trim().toLowerCase(); });
+      const map = {}; let score = 0;
+      for (const field in aliases) for (const c in texts) { if (aliases[field].some((a) => texts[c].includes(a))) { map[field] = +c; score++; break; } }
+      if (score > bestScore) { bestRow = r; bestMap = map; bestScore = score; }
+    }
+    if (bestRow < 0 || bestScore < 4) throw new Error("baris header tidak ditemukan (cek nama kolom)");
+    return { headerRow: bestRow, colMap: bestMap };
+  }
+  function looksLikeDate(v) { if (v instanceof Date) return true; if (typeof v === "string") return /^\s*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}/.test(v); return false; }
+  function cellText(row, colMap, field) { const c = colMap[field]; if (c === undefined) return null; let v = row[c]; if (typeof v === "string") v = v.trim(); return v === "" ? null : (v ?? null); }
+  function isIgnorable(t) { return !!t && IGNORE.has(String(t).trim().toLowerCase()); }
+
+  function extractFlatRows(aoa, headerRow, colMap, ownersSetLower, targetStagings, forcedStaging) {
+    const results = []; let curOwner = null, curStaging = null;
+    const stagingsLower = targetStagings ? new Set(targetStagings.map((s) => s.toLowerCase())) : null;
+    for (let r = headerRow + 1; r < aoa.length; r++) {
+      const row = aoa[r] || [];
+      const createdOn = cellText(row, colMap, "created_on"), ownerVal = cellText(row, colMap, "owner"), stagingVal = cellText(row, colMap, "staging");
+      if (!looksLikeDate(createdOn)) {
+        if (ownerVal && !isIgnorable(ownerVal)) { curOwner = ownerVal; curStaging = null; }
+        else if (stagingVal && !isIgnorable(stagingVal)) { curStaging = stagingVal; }
+        continue;
+      }
+      const ownerMatch = curOwner && ownersSetLower.has(curOwner.trim().toLowerCase());
+      let stagingMatch, stagingForRow;
+      if (forcedStaging) { stagingMatch = true; stagingForRow = forcedStaging; }
+      else { stagingMatch = !!stagingsLower && stagingsLower.has((curStaging || "").trim().toLowerCase()); stagingForRow = curStaging; }
+      if (ownerMatch && stagingMatch) {
+        const revRaw = cellText(row, colMap, "revenue");
+        results.push({
+          created_on: createdOn, topic: cellText(row, colMap, "topic"), owner: curOwner,
+          area: cellText(row, colMap, "area"), sold_to_party: cellText(row, colMap, "sold_to_party"),
+          transaction_type: cellText(row, colMap, "transaction_type"), est_close_date: cellText(row, colMap, "close_date"),
+          est_revenue: typeof revRaw === "number" ? revRaw : (revRaw == null ? null : (Number(revRaw) || null)),
+          staging_category: stagingForRow,
+        });
+      }
+    }
+    return results;
+  }
+  function readWorkbook(file) {
+    return new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = (e) => { try { res(XLSX.read(e.target.result, { type: "array", cellDates: true })); } catch (err) { rej(err); } };
+      fr.onerror = () => rej(new Error("gagal membaca file"));
+      fr.readAsArrayBuffer(file);
+    });
+  }
+  function buildPivot(rows, keyField) {
+    const map = new Map();
+    rows.forEach((r) => {
+      const name = r[keyField] || "(Kosong)";
+      if (!map.has(name)) map.set(name, Object.fromEntries(STAGING_CATS.map((c) => [c, 0])));
+      const v = typeof r.est_revenue === "number" ? r.est_revenue : 0;
+      if (STAGING_CATS.includes(r.staging_category)) map.get(name)[r.staging_category] += v;
+    });
+    return [...map.entries()].map(([name, vals]) => ({ name, ...vals, grand_total: STAGING_CATS.reduce((s, c) => s + vals[c], 0) }));
+  }
+  function buildDashboardData(rows) {
+    const revs = rows.map((r) => (typeof r.est_revenue === "number" ? r.est_revenue : 0));
+    return {
+      generated_at: new Date().toISOString(), row_count: rows.length, staging_categories: STAGING_CATS,
+      est_revenue_min: revs.length ? Math.min(...revs) : 0, est_revenue_max: revs.length ? Math.max(...revs) : 1,
+      pivot_owner: buildPivot(rows, "owner"), pivot_party: buildPivot(rows, "sold_to_party"), rows,
+    };
+  }
+
+  let allOwners = [], selectedOwners = new Set();
+
+  function getFiles() { return { pipeline: $("f_pipeline").files[0], contract: $("f_contract").files[0], noncontract: $("f_noncontract").files[0] }; }
+
+  function scanOwnersFromAOA(aoa, headerRow, colMap, set) {
+    for (let r = headerRow + 1; r < aoa.length; r++) {
+      const row = aoa[r] || [];
+      const createdOn = cellText(row, colMap, "created_on"), ownerVal = cellText(row, colMap, "owner");
+      if (!looksLikeDate(createdOn) && ownerVal && !isIgnorable(ownerVal)) set.add(String(ownerVal).trim());
+    }
+  }
+
+  function renderOwnerChecklist() {
+    const box = $("ownerBox");
+    if (!allOwners.length) { box.innerHTML = "Tidak ada nama Owner terdeteksi di ketiga file."; return; }
+    const n = selectedOwners.size, t = allOwners.length;
+    box.innerHTML = '<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;cursor:pointer"><input type="checkbox" class="all" ' + (n === t ? "checked" : "") + '><b>(Semua &mdash; ' + t + ' owner)</b></label>' +
+      allOwners.map((o) => '<label style="display:flex;align-items:center;gap:6px;padding:1px 0;cursor:pointer"><input type="checkbox" data-o="' + esc(o) + '" ' + (selectedOwners.has(o) ? "checked" : "") + '><span>' + esc(o) + '</span></label>').join("");
+    box.querySelector(".all").onchange = (e) => { selectedOwners = e.target.checked ? new Set(allOwners) : new Set(); renderOwnerChecklist(); };
+    box.querySelectorAll("[data-o]").forEach((c) => (c.onchange = () => { c.checked ? selectedOwners.add(c.dataset.o) : selectedOwners.delete(c.dataset.o); renderOwnerChecklist(); }));
+  }
+
+  async function scanAllOwners() {
+    const files = getFiles();
+    if (!files.pipeline || !files.contract || !files.noncontract) return;
+    notice("ok", "Mendeteksi nama Owner dari 3 file&hellip;");
+    try {
+      const set = new Set();
+      for (const cfg of SOURCE_CONFIGS) {
+        const wb = await readWorkbook(files[cfg.key]);
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null });
+        const { headerRow, colMap } = findHeader(aoa, mergeAliases(cfg.overrides));
+        scanOwnersFromAOA(aoa, headerRow, colMap, set);
+      }
+      allOwners = [...set].sort((a, b) => a.localeCompare(b));
+      selectedOwners = new Set(allOwners);
+      renderOwnerChecklist();
+      $("btnProcess").disabled = !allOwners.length;
+      notice(allOwners.length ? "ok" : "warn", allOwners.length ? allOwners.length + " nama Owner terdeteksi. Silakan klik Proses." : "Tidak ada nama Owner yang terdeteksi, cek struktur file.");
+    } catch (err) { notice("err", "Gagal mendeteksi Owner: " + esc(err.message)); }
+  }
+  ["f_pipeline", "f_contract", "f_noncontract"].forEach((id) => ($(id).onchange = scanAllOwners));
+
+  async function processAll() {
+    const files = getFiles();
+    if (!files.pipeline || !files.contract || !files.noncontract) { notice("err", "Mohon unggah ketiga file Excel (Pipeline, Contract, Non Contract)."); return; }
+    if (!selectedOwners.size) { notice("err", "Centang minimal satu nama Owner."); return; }
+    const ownersRaw = [...selectedOwners];
+    const ownersSetLower = new Set(ownersRaw.map((o) => o.toLowerCase()));
+    notice("ok", "Memproses file&hellip;");
+    try {
+      let allRows = [];
+      for (const cfg of SOURCE_CONFIGS) {
+        const wb = await readWorkbook(files[cfg.key]);
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null });
+        const { headerRow, colMap } = findHeader(aoa, mergeAliases(cfg.overrides));
+        allRows.push(...extractFlatRows(aoa, headerRow, colMap, ownersSetLower, cfg.target_stagings, cfg.forced_staging));
+      }
+      const data = buildDashboardData(allRows);
+      window.mountDashboard($("root"), data);
+      window.__pivotData = data;
+      $("btnPivot").disabled = false;
+      $("btnPres").disabled = false;
+      $("meta").textContent = allRows.length + " baris \u2022 " + ownersRaw.length + " owner";
+      notice(allRows.length ? "ok" : "warn", allRows.length ? "Dashboard berhasil dibuat dari 3 file." : "Dashboard dibuat, tapi tidak ada baris yang cocok untuk Owner tersebut.");
+    } catch (err) { notice("err", "Gagal memproses: " + esc(err.message)); }
+  }
+
+  function downloadPivot() {
+    const d = window.__pivotData; if (!d) return;
+    const ownerAOA = [["Owner", ...STAGING_CATS, "Grand Total"], ...d.pivot_owner.map((p) => [p.name, ...STAGING_CATS.map((c) => p[c]), p.grand_total])];
+    const partyAOA = [["Sold To Party", ...STAGING_CATS, "Grand Total"], ...d.pivot_party.map((p) => [p.name, ...STAGING_CATS.map((c) => p[c]), p.grand_total])];
+    const fh = ["CREATED ON", "TOPIC", "OWNER", "AREA", "SOLD TO PARTY", "TRANSACTION TYPE", "EST CLOSE DATE", "EST REVENUE", "STAGING CATEGORY", "OPPTY"];
+    const flatAOA = [fh, ...d.rows.map((r) => [r.created_on, r.topic, r.owner, r.area, r.sold_to_party, r.transaction_type, r.est_close_date, r.est_revenue, r.staging_category,
+      ["Hot Prospect", "Forecast", "Potential"].includes(r.staging_category) ? "OPTY" : (r.staging_category === "Won" ? "Won" : "")])];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ownerAOA), "Pivot Owner");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(partyAOA), "Pivot Party");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(flatAOA), "Flat Format");
+    XLSX.writeFile(wb, "Pivot Sales Pipeline.xlsx");
+  }
+
+  const fmtR = (n) => Math.round(n).toLocaleString("id-ID");
+  function buildPresentation(d) {
+    const sum = (c) => d.pivot_owner.reduce((s, p) => s + (p[c] || 0), 0);
+    const totalAll = STAGING_CATS.reduce((s, c) => s + sum(c), 0);
+    const ownersSorted = [...d.pivot_owner].sort((a, b) => b.grand_total - a.grand_total);
+    const partiesSorted = [...d.pivot_party].sort((a, b) => b.grand_total - a.grand_total).slice(0, 5);
+    const maxOwner = ownersSorted.length ? ownersSorted[0].grand_total : 1;
+    const maxParty = partiesSorted.length ? partiesSorted[0].grand_total : 1;
+    const bar = (label, val, max) => '<div class="barrow"><span title="' + esc(label) + '" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(label) + '</span><div class="bwrap"><div class="bar" style="width:' + (max ? Math.max(2, (val / max) * 100) : 0) + '%"></div></div><span class="v">Rp ' + fmtR(val) + '</span></div>';
+    $("presentation").innerHTML =
+      '<h1>Ringkasan Sales Pipeline</h1>' +
+      '<div class="sub">Dibuat ' + new Date(d.generated_at).toLocaleString("id-ID") + ' &middot; ' + d.row_count + ' baris data &middot; ' + d.pivot_owner.length + ' owner</div>' +
+      '<div class="kpi">' + STAGING_CATS.map((c) => '<div><div class="n">Rp ' + fmtR(sum(c)) + '</div><div class="l">' + esc(c) + '</div></div>').join("") + '</div>' +
+      '<div class="kpi" style="grid-template-columns:1fr"><div style="border-top-color:var(--won)"><div class="n">Rp ' + fmtR(totalAll) + '</div><div class="l">TOTAL SELURUH PIPELINE</div></div></div>' +
+      '<h3>Peringkat Owner (berdasarkan Grand Total)</h3>' + ownersSorted.map((o) => bar(o.name, o.grand_total, maxOwner)).join("") +
+      '<h3>Top 5 Sold To Party</h3>' + partiesSorted.map((p) => bar(p.name, p.grand_total, maxParty)).join("");
+  }
+
+  $("btnProcess").onclick = processAll;
+  $("btnPivot").onclick = downloadPivot;
+  $("btnPres").onclick = () => {
+    if (!window.__pivotData) return;
+    buildPresentation(window.__pivotData);
+    $("root").hidden = true; $("presentation").hidden = false;
+    $("btnPres").hidden = true; $("btnClosePres").hidden = false;
+  };
+  $("btnClosePres").onclick = () => {
+    $("root").hidden = false; $("presentation").hidden = true;
+    $("btnPres").hidden = false; $("btnClosePres").hidden = true;
+  };
+  $("btnDemo").onclick = () => {
+    $("meta").textContent = "DEMO - 101 rows";
+    window.mountDashboard($("root"), DEMO_DATA);
+    window.__pivotData = DEMO_DATA;
+    $("btnPivot").disabled = false;
+    $("btnPres").disabled = false;
+    notice("warn", "Mode <b>DEMO</b> dengan data contoh ditampilkan.");
+  };
+  notice("warn", "Unggah 3 file Excel (Sales Pipeline, Closewon Contract, Closewon Non Contract). Nama Owner akan terdeteksi otomatis, lalu klik <b>Proses</b>. Atau klik <b>Lihat Demo</b>.");
+})();
 </script>
 </body>
 </html>
