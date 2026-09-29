@@ -31,6 +31,7 @@ a{color:#2a5b8c}
 .dash[hidden]{display:none}
 .chart{flex:1;min-width:0;border:1px solid #cfd3d8;padding:6px 8px 8px}
 .chart h1{font-size:24px;font-weight:600;margin:4px 0 10px;letter-spacing:.2px}
+.chart h1 .unit{font-size:12px;font-weight:400;color:var(--muted);letter-spacing:normal;margin-left:8px}
 .head{display:grid;grid-template-columns:150px 1fr;font-size:14px;font-weight:600;border-bottom:1px solid var(--grid);padding-bottom:4px}
 .head span:last-child{text-align:center;padding-right:8px}
 .row{display:grid;grid-template-columns:110px 26px 1fr;height:96px;border-bottom:1px solid var(--grid)}
@@ -57,6 +58,7 @@ a{color:#2a5b8c}
 .cell .h{position:absolute;left:12%;right:12%;bottom:2px;cursor:pointer}
 .cell .t{position:absolute;left:0;right:0;top:0;text-align:center;font-size:11.5px;line-height:13px;white-space:nowrap;pointer-events:none}
 .foot2{display:grid;grid-template-columns:190px repeat(4,1fr);font-size:13px;color:var(--muted);padding-top:6px;text-align:center}
+.foot2 .cats{grid-column:2/-1;display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
 aside{width:190px;flex:none;font-size:13px}
 aside h3{font-size:13px;font-weight:600;margin:0 0 6px}
 .sec{margin-bottom:20px}
@@ -220,8 +222,9 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     go();
   }
 
-  // Agregasi ulang pivot dari array rows (untuk filter granular)
-  function aggregateRows(rawRows, keyField, cats) {
+  // Agregasi ulang pivot dari array rows (untuk filter granular). catField default "staging_category" agar dashboard lama tetap sama.
+  function aggregateRows(rawRows, keyField, cats, catField) {
+    catField = catField || "staging_category";
     const canon = {};
     cats.forEach((c) => { canon[c.toLowerCase()] = c; });
     const names = {}, sums = {};
@@ -229,7 +232,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
       const k = r[keyField];
       if (!k || typeof k !== "string") continue;
       const kl = k.trim().toLowerCase();
-      const cat = canon[String(r.staging_category || "").trim().toLowerCase()];
+      const cat = canon[String(r[catField] || "").trim().toLowerCase()];
       if (!cat) continue;
       const v = r.est_revenue;
       if (v === null || v === undefined || typeof v !== "number") continue;
@@ -333,7 +336,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
           return v >= st.lo && v <= st.hi;
         });
       }
-      const agg = aggregateRows(filteredRows, "sold_to_party", cats);
+      const agg = aggregateRows(filteredRows, "sold_to_party_group", cats);
       const show = agg.filter((r) => st.parties.has(r.name));
       if (!rows.length) { out.innerHTML = '<div class="empty">Tidak ada data Sold To Party (kolom kosong di file sumber).</div>'; return; }
       if (!show.length) { out.innerHTML = '<div class="empty">Tidak ada Sold To Party yang dipilih. Centang minimal satu di sebelah kanan.</div>'; return; }
@@ -355,19 +358,70 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     draw();
   }
 
+  // ---- Dashboard 3: STAGING CATEGORY (Owner x Transaction Type, filter Sold To Party) ----
+  const fmtHM = (n) => (n / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+  // Label batang: miliar + akhiran "M"; nilai positif yang sangat kecil ditampilkan "<0,01 M" (nilai persis ada di tooltip)
+  const fmtBar = (n) => (n > 0 && n < 5e6 ? "<0,01 M" : fmtHM(n) + " M");
+  function buildTxType(sec, data, revMin, revMax) {
+    const rawRows = Array.isArray(data.rows) ? data.rows : [];
+    const allOwners = [...new Set(rawRows.map((r) => r.owner).filter(Boolean))].sort();
+    const allTypes = [...new Set(rawRows.map((r) => r.transaction_type).filter(Boolean))].sort();
+    const allParties = [...new Set(rawRows.map((r) => r.sold_to_party_group || r.sold_to_party || "(Kosong)"))].sort();
+    sec.innerHTML = `<div class="chart"><h1>STAGING CATEGORY <span class="unit">(nilai dalam Miliar Rupiah)</span></h1><div class="head"><span>Owner</span><span>Transaction Type</span></div><div class="rows"></div><div class="foot"><span></span><div class="cats"></div></div></div><aside></aside>`;
+    const side = sec.querySelector("aside"), out = sec.querySelector(".rows");
+    const initAgg = aggregateRows(rawRows, "owner", allTypes, "transaction_type");
+    const all = initAgg.flatMap((r) => allTypes.map((c) => r[c])).filter((v) => typeof v === "number");
+    const dataMin = revMin != null ? Number(revMin) : (all.length ? Math.min(...all) : 0);
+    const dataMax = revMax != null ? Number(revMax) : (all.length ? Math.max(...all) : 1);
+    const st = { owners: new Set(allOwners), types: new Set(allTypes), parties: new Set(allParties), lo: dataMin, hi: dataMax };
+    const AX = niceMax(Math.max(0, ...all));
+    function draw() {
+      const cats = allTypes.filter((c) => st.types.has(c));
+      const catsBox = sec.querySelector(".cats");
+      catsBox.style.gridTemplateColumns = "repeat(" + cats.length + ",1fr)";
+      catsBox.innerHTML = cats.map((c) => `<span>${esc(c)}</span>`).join("");
+      const filteredRows = rawRows.filter((r) => {
+        const v = r.est_revenue;
+        if (v === null || v === undefined || typeof v !== "number" || v < st.lo || v > st.hi) return false;
+        return st.parties.has(r.sold_to_party_group || r.sold_to_party || "(Kosong)");
+      });
+      const agg = aggregateRows(filteredRows, "owner", cats, "transaction_type");
+      const show = agg.filter((r) => st.owners.has(r.name));
+      if (!allOwners.length) { out.innerHTML = '<div class="empty">Tidak ada data Owner x Transaction Type.</div>'; return; }
+      if (!show.length) { out.innerHTML = '<div class="empty">Tidak ada owner/tipe transaksi yang dipilih untuk filter ini.</div>'; return; }
+      out.innerHTML = show.map((r) => {
+        const cols = cats.map((c, i) => {
+          const v = r[c];
+          if (v == null || v === 0) return '<div class="col"></div>';
+          const h = (v / AX) * 100;
+          return `<div class="col"><div class="bar" style="height:${h}%;background:var(--fc)" data-o="${esc(r.name)}" data-i="${i}" data-v="${v}"></div><div class="val" style="bottom:calc(${h}% + 3px)">${fmtBar(v)}</div></div>`;
+        }).join("");
+        return `<div class="row"><div class="who">${esc(r.name)}</div><div class="yl">Est Revenue</div><div class="plot"><span class="tick" style="bottom:100%">${fmtHM(AX)}</span><span class="tick" style="bottom:50%">${fmtHM(AX / 2)}</span><span class="tick" style="bottom:0">0</span><div class="gl" style="bottom:100%"></div><div class="gl" style="bottom:50%"></div><div class="gl" style="bottom:0"></div><div class="bars" style="grid-template-columns:repeat(${cats.length},1fr)">${cols}</div></div></div>`;
+      }).join("");
+      out.querySelectorAll(".bar").forEach((b) => showTip(b, `<b>${esc(b.dataset.o)}</b><br>${esc(cats[b.dataset.i])}<br>Est Revenue: Rp ${fmt(+b.dataset.v)}`));
+    }
+    checklist(side, "Sold To Party", allParties, st.parties, draw, true);
+    checklist(side, "Owner", allOwners, st.owners, draw, true);
+    checklist(side, "Transaction Type", allTypes, st.types, draw, false);
+    range(side, dataMin, dataMax, st, draw);
+    draw();
+  }
+
   window.mountDashboard = function (root, data) {
-    root.innerHTML = `<div class="tabs" role="tablist"><button role="tab" data-t="d1" aria-selected="true">SALES PIPELINE</button><button role="tab" data-t="d2" aria-selected="false">PT DASH</button></div><section class="dash" data-d="d1"></section><section class="dash" data-d="d2" hidden></section>`;
-    const s1 = root.querySelector('[data-d="d1"]'), s2 = root.querySelector('[data-d="d2"]');
+    root.innerHTML = `<div class="tabs" role="tablist"><button role="tab" data-t="d1" aria-selected="true">SALES PIPELINE</button><button role="tab" data-t="d2" aria-selected="false">CUSTOMER DASHBOARD</button><button role="tab" data-t="d3" aria-selected="false">STAGING CATEGORY</button></div><section class="dash" data-d="d1"></section><section class="dash" data-d="d2" hidden></section><section class="dash" data-d="d3" hidden></section>`;
+    const s1 = root.querySelector('[data-d="d1"]'), s2 = root.querySelector('[data-d="d2"]'), s3 = root.querySelector('[data-d="d3"]');
     // Pass raw values to buildPipeline/buildParty so they can distinguish 0 from null/undefined
     const revMin = data.est_revenue_min;
     const revMax = data.est_revenue_max;
     const rawRows = Array.isArray(data.rows) ? data.rows : [];
     buildPipeline(s1, data.pivot_owner, revMin, revMax, rawRows);
     buildParty(s2, data.pivot_party, revMin, revMax, rawRows);
+    buildTxType(s3, data, revMin, revMax);
     root.querySelectorAll(".tabs button").forEach((btn) => (btn.onclick = () => {
       root.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", x === btn));
       s1.hidden = btn.dataset.t !== "d1";
       s2.hidden = btn.dataset.t !== "d2";
+      s3.hidden = btn.dataset.t !== "d3";
     }));
   };
 })();
@@ -409,6 +463,27 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
   }
   function looksLikeDate(v) { if (v instanceof Date) return true; if (typeof v === "string") return /^\s*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}/.test(v); return false; }
   function cellText(row, colMap, field) { const c = colMap[field]; if (c === undefined) return null; let v = row[c]; if (typeof v === "string") v = v.trim(); return v === "" ? null : (v ?? null); }
+  // Parser angka toleran untuk revenue yang tersimpan sebagai teks: "Rp72,500,000.00" (format EN), "Rp72.500.000,50" (format ID), "(1.000)" (negatif)
+  function parseNum(v) {
+    if (typeof v === "number") return Number.isFinite(v) ? v : null;
+    if (v == null) return null;
+    let s = String(v).trim();
+    const neg = /^\(.*\)$/.test(s) || /^-/.test(s.replace(/^[^0-9()-]*/, ""));
+    s = s.replace(/[^0-9.,]/g, "");
+    if (!s) return null;
+    const lastDot = s.lastIndexOf("."), lastComma = s.lastIndexOf(",");
+    if (lastDot >= 0 && lastComma >= 0) {
+      // dua jenis pemisah: yang paling akhir = desimal, yang lain = ribuan
+      const dec = lastDot > lastComma ? "." : ",", thou = dec === "." ? "," : ".";
+      s = s.split(thou).join("").replace(dec, ".");
+    } else if (lastDot >= 0 || lastComma >= 0) {
+      const sep = lastDot >= 0 ? "." : ",", cnt = s.split(sep).length - 1, tail = s.length - s.lastIndexOf(sep) - 1;
+      if (cnt > 1 || tail === 3) s = s.split(sep).join("");   // ribuan
+      else s = s.replace(sep, ".");                            // desimal
+    }
+    const n = Number(s);
+    return Number.isFinite(n) ? (neg ? -n : n) : null;
+  }
   function isIgnorable(t) { return !!t && IGNORE.has(String(t).trim().toLowerCase()); }
 
   function extractFlatRows(aoa, headerRow, colMap, ownersSetLower, targetStagings, forcedStaging) {
@@ -432,7 +507,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
           created_on: createdOn, topic: cellText(row, colMap, "topic"), owner: curOwner,
           area: cellText(row, colMap, "area"), sold_to_party: cellText(row, colMap, "sold_to_party"),
           transaction_type: cellText(row, colMap, "transaction_type"), est_close_date: cellText(row, colMap, "close_date"),
-          est_revenue: typeof revRaw === "number" ? revRaw : (revRaw == null ? null : (Number(revRaw) || null)),
+          est_revenue: parseNum(revRaw),
           staging_category: stagingForRow,
         });
       }
@@ -447,22 +522,34 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
       fr.readAsArrayBuffer(file);
     });
   }
-  function buildPivot(rows, keyField) {
+  function buildPivot(rows, keyField, normalize) {
     const map = new Map();
     rows.forEach((r) => {
-      const name = r[keyField] || "(Kosong)";
+      let name = r[keyField] || "(Kosong)";
+      if (normalize) name = normalize(name);
       if (!map.has(name)) map.set(name, Object.fromEntries(STAGING_CATS.map((c) => [c, 0])));
       const v = typeof r.est_revenue === "number" ? r.est_revenue : 0;
       if (STAGING_CATS.includes(r.staging_category)) map.get(name)[r.staging_category] += v;
     });
     return [...map.entries()].map(([name, vals]) => ({ name, ...vals, grand_total: STAGING_CATS.reduce((s, c) => s + vals[c], 0) }));
   }
-  function buildDashboardData(rows) {
+  // Semua Sold To Party dengan kata "BUMA" (BUMA IPR, BUMA BINUNGAN, dst.) digabung jadi satu baris "BUMA".
+  // "PT BUKIT MAKMUR MANDIRI UTAMA" TIDAK ikut digabung (sesuai acuan Tableau).
+  // Nama lain dirapikan (trim + spasi ganda) agar konsisten antara pivot, chart, dan export Excel.
+  const BUMA_RE = /\bBUMA\b/i;
+  function normalizeParty(name) {
+    const s = String(name == null ? "" : name).replace(/\s+/g, " ").trim();
+    if (!s) return "(Kosong)";
+    return BUMA_RE.test(s) ? "BUMA" : s;
+  }
+  function buildDashboardData(rowsIn) {
+    // sold_to_party_group dipakai untuk pivot & chart PT DASH; sold_to_party asli tetap disimpan untuk export Flat Format
+    const rows = rowsIn.map((r) => ({ ...r, sold_to_party_group: normalizeParty(r.sold_to_party || "(Kosong)") }));
     const revs = rows.map((r) => (typeof r.est_revenue === "number" ? r.est_revenue : 0));
     return {
       generated_at: new Date().toISOString(), row_count: rows.length, staging_categories: STAGING_CATS,
       est_revenue_min: revs.length ? Math.min(...revs) : 0, est_revenue_max: revs.length ? Math.max(...revs) : 1,
-      pivot_owner: buildPivot(rows, "owner"), pivot_party: buildPivot(rows, "sold_to_party"), rows,
+      pivot_owner: buildPivot(rows, "owner"), pivot_party: buildPivot(rows, "sold_to_party_group"), rows,
     };
   }
 
@@ -518,34 +605,44 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     notice("ok", "Memproses file&hellip;");
     try {
       let allRows = [];
+      const diag = [];
       for (const cfg of SOURCE_CONFIGS) {
         const wb = await readWorkbook(files[cfg.key]);
         const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null });
         const { headerRow, colMap } = findHeader(aoa, mergeAliases(cfg.overrides));
-        allRows.push(...extractFlatRows(aoa, headerRow, colMap, ownersSetLower, cfg.target_stagings, cfg.forced_staging));
+        const srcRows = extractFlatRows(aoa, headerRow, colMap, ownersSetLower, cfg.target_stagings, cfg.forced_staging);
+        const kosong = srcRows.filter((r) => r.est_revenue == null).length;
+        diag.push(cfg.key + ": " + srcRows.length + " baris" + (kosong ? " (" + kosong + " revenue kosong/gagal dibaca)" : ""));
+        allRows.push(...srcRows);
       }
       const data = buildDashboardData(allRows);
       window.mountDashboard($("root"), data);
       window.__pivotData = data;
       $("btnPivot").disabled = false;
       $("btnPres").disabled = false;
-      $("meta").textContent = allRows.length + " baris \u2022 " + ownersRaw.length + " owner";
+      $("meta").textContent = allRows.length + " baris \u2022 " + ownersRaw.length + " owner \u2022 " + diag.join(" | ");
       notice(allRows.length ? "ok" : "warn", allRows.length ? "Dashboard berhasil dibuat dari 3 file." : "Dashboard dibuat, tapi tidak ada baris yang cocok untuk Owner tersebut.");
     } catch (err) { notice("err", "Gagal memproses: " + esc(err.message)); }
   }
 
   function downloadPivot() {
     const d = window.__pivotData; if (!d) return;
-    const ownerAOA = [["Owner", ...STAGING_CATS, "Grand Total"], ...d.pivot_owner.map((p) => [p.name, ...STAGING_CATS.map((c) => p[c]), p.grand_total])];
-    const partyAOA = [["Sold To Party", ...STAGING_CATS, "Grand Total"], ...d.pivot_party.map((p) => [p.name, ...STAGING_CATS.map((c) => p[c]), p.grand_total])];
-    const fh = ["CREATED ON", "TOPIC", "OWNER", "AREA", "SOLD TO PARTY", "TRANSACTION TYPE", "EST CLOSE DATE", "EST REVENUE", "STAGING CATEGORY", "OPPTY"];
-    const flatAOA = [fh, ...d.rows.map((r) => [r.created_on, r.topic, r.owner, r.area, r.sold_to_party, r.transaction_type, r.est_close_date, r.est_revenue, r.staging_category,
-      ["Hot Prospect", "Forecast", "Potential"].includes(r.staging_category) ? "OPTY" : (r.staging_category === "Won" ? "Won" : "")])];
+    const withTotal = (head, pv) => {
+      const rows = pv.map((p) => [p.name, ...STAGING_CATS.map((c) => p[c] || 0), p.grand_total]);
+      const tot = ["Grand Total", ...STAGING_CATS.map((c) => pv.reduce((s, p) => s + (p[c] || 0), 0)), pv.reduce((s, p) => s + p.grand_total, 0)];
+      return [[head, ...STAGING_CATS, "Grand Total"], ...rows, tot];
+    };
+    const ownerAOA = withTotal("Owner", d.pivot_owner);
+    const partyAOA = withTotal("Sold To Party", d.pivot_party);
+    // Flat Format: SOLD TO PARTY sudah digabung (BUMA); nama asli dari file sumber tetap ada di kolom terakhir
+    const fh = ["CREATED ON", "TOPIC", "OWNER", "AREA", "SOLD TO PARTY", "TRANSACTION TYPE", "EST CLOSE DATE", "EST REVENUE", "STAGING CATEGORY", "OPPTY", "SOLD TO PARTY (ASLI)"];
+    const flatAOA = [fh, ...d.rows.map((r) => [r.created_on, r.topic, r.owner, r.area, r.sold_to_party_group || normalizeParty(r.sold_to_party), r.transaction_type, r.est_close_date, r.est_revenue == null ? 0 : r.est_revenue, r.staging_category,
+      ["Hot Prospect", "Forecast", "Potential"].includes(r.staging_category) ? "OPTY" : (r.staging_category === "Won" ? "Won" : ""), r.sold_to_party]) ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ownerAOA), "Pivot Owner");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(partyAOA), "Pivot Party");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(flatAOA), "Flat Format");
-    XLSX.writeFile(wb, "Pivot Sales Pipeline.xlsx");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(flatAOA, { cellDates: true }), "Flat Format");
+    XLSX.writeFile(wb, "Pivot Sales Pipeline.xlsx", { cellDates: true });
   }
 
   const fmtR = (n) => Math.round(n).toLocaleString("id-ID");
@@ -580,8 +677,9 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
   };
   $("btnDemo").onclick = () => {
     $("meta").textContent = "DEMO - 101 rows";
-    window.mountDashboard($("root"), DEMO_DATA);
-    window.__pivotData = DEMO_DATA;
+    const demo = { ...DEMO_DATA, rows: DEMO_DATA.rows.map((r) => ({ ...r, sold_to_party_group: normalizeParty(r.sold_to_party || "(Kosong)") })) };
+    window.mountDashboard($("root"), demo);
+    window.__pivotData = demo;
     $("btnPivot").disabled = false;
     $("btnPres").disabled = false;
     notice("warn", "Mode <b>DEMO</b> dengan data contoh ditampilkan.");
