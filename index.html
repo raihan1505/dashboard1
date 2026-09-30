@@ -27,7 +27,7 @@ a{color:#2a5b8c}
 .tabs button{font:inherit;font-size:13px;padding:7px 16px;border:1px solid var(--line);border-bottom:0;background:#e8eaed;color:var(--muted);cursor:pointer}
 .tabs button[aria-selected=true]{background:#fff;color:var(--ink);font-weight:600}
 .tabs button:focus-visible{outline:2px solid #4e79a7}
-.dash{display:flex;gap:14px;background:#fff;padding:12px;border:1px solid var(--line)}
+.dash{display:flex;gap:14px;background:#fff;padding:12px;border:1px solid var(--line);position:relative}
 .dash[hidden]{display:none}
 .chart{flex:1;min-width:0;border:1px solid #cfd3d8;padding:6px 8px 8px}
 .chart h1{font-size:24px;font-weight:600;margin:4px 0 10px;letter-spacing:.2px}
@@ -81,6 +81,14 @@ input[type=checkbox]{margin:0;accent-color:#4e79a7;flex:none}
 .lg:focus-visible,label.o:focus-within{outline:2px solid #4e79a7}
 .grad{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
 .grad i{flex:1;height:18px;background:linear-gradient(90deg,#d3e5f4,#2a5b8c)}
+.pin{position:absolute;z-index:8;min-width:210px;max-width:290px;background:#fff;border:1px solid #2a5b8c;box-shadow:0 4px 14px rgba(0,0,0,.2);padding:8px 28px 8px 10px;font-size:12px;line-height:1.55;border-radius:3px}
+.pin .x{position:absolute;top:2px;right:4px;border:0;background:none;font-size:18px;line-height:1;cursor:pointer;color:var(--muted)}
+.pin .pt{font-weight:600;font-size:13px;word-break:break-word}
+.pin .pc{color:var(--muted);margin-bottom:4px}
+.pin .pr{display:flex;justify-content:space-between;gap:14px}
+.bar.sel{outline:2px solid #1f2d3d;outline-offset:1px}
+.cell.sel{background:rgba(78,121,167,.14)}
+.cell .h.sel{outline:2px solid #1f2d3d;outline-offset:1px}
 #tip{position:fixed;pointer-events:none;background:#fff;border:1px solid #bbb;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:6px 9px;font-size:12px;display:none;z-index:9;line-height:1.5}
 .pres{background:#fff;border:1px solid var(--line);padding:24px}
 .pres h1{margin:0 0 2px;font-size:26px}
@@ -98,6 +106,33 @@ input[type=checkbox]{margin:0;accent-color:#4e79a7;flex:none}
 @media(max-width:760px){.pres .kpi{grid-template-columns:repeat(2,1fr)}.barrow{grid-template-columns:110px 1fr 90px}.dash{flex-direction:column}aside{width:100%}.row{grid-template-columns:80px 22px 1fr}.head,.foot{grid-template-columns:110px 1fr}.val{font-size:10px}
 .r2,.foot2{grid-template-columns:110px repeat(4,1fr)}.head2{grid-template-columns:110px 1fr}.cell .t{font-size:9px}}
 
+.drill{margin-top:6px;width:100%;font:inherit;font-size:12px;padding:5px 8px;border:1px solid #2a5b8c;background:#2a5b8c;color:#fff;border-radius:3px;cursor:pointer}
+#detailOv{position:fixed;inset:0;background:rgba(20,30,45,.5);z-index:30;overflow:auto;padding:20px 12px}
+#detailOv .panel{max-width:1100px;margin:0 auto;background:#fff;border:1px solid var(--line);padding:12px}
+.dh{display:grid;grid-template-columns:190px 1fr;font-size:14px;font-weight:600;border-bottom:1px solid var(--grid);padding-bottom:4px}
+.dh span:last-child{text-align:center}
+.dr{display:grid;height:96px;border-bottom:1px solid var(--grid)}
+.dr .who{font-size:12.5px}
+.dc{position:relative}
+.dc .db{position:absolute;left:14%;right:14%;bottom:0;min-height:2px}
+.dc .dl{position:absolute;left:50%;transform:translateX(-50%) rotate(180deg);writing-mode:vertical-rl;font-size:11px;white-space:nowrap;pointer-events:none}
+.dfoot{display:grid;grid-template-columns:190px 1fr;padding-top:6px}
+.dcats{display:grid;text-align:center;font-size:12px;color:var(--muted)}
+#detailOv .panel{max-width:1240px}
+#detailOv aside{width:240px}
+.dr{height:108px}
+.dc{margin:10px 0 4px;background:linear-gradient(#e3e6ea,#e3e6ea) 0 0/100% 1px no-repeat,linear-gradient(#e3e6ea,#e3e6ea) 0 50%/100% 1px no-repeat,linear-gradient(#cfd3d8,#cfd3d8) 0 100%/100% 1px no-repeat}
+.dr .yl{font-size:11px}
+.dt{position:relative;margin:10px 0 4px}
+.dt span{position:absolute;right:4px;font-size:11px;color:var(--muted);white-space:nowrap}
+.dfoot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:12px;color:var(--muted);padding:0 2px}
+.dc{background:linear-gradient(#e3e6ea,#e3e6ea) 0 0/100% 1px no-repeat,linear-gradient(#e3e6ea,#e3e6ea) 0 33.33%/100% 1px no-repeat,linear-gradient(#e3e6ea,#e3e6ea) 0 66.67%/100% 1px no-repeat,linear-gradient(#cfd3d8,#cfd3d8) 0 100%/100% 1px no-repeat}
+.dc .dl{writing-mode:horizontal-tb;transform:translateX(-50%);font-size:11px;line-height:13px}
+.dtip{position:fixed;z-index:50;background:#fff;border:1px solid #bbb;box-shadow:0 2px 8px rgba(0,0,0,.18);padding:8px 12px;pointer-events:none;max-width:420px}
+.dtip.p{border-color:#2a5b8c}
+.dc{background:none}
+.gl2{position:absolute;left:0;right:0;border-top:1px solid #e3e6ea}
+.gl2.b{border-top-color:#cfd3d8}
 </style>
 </head>
 <body>
@@ -170,6 +205,39 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     return s;
   }
 
+  // ---- Klik batang: tampilkan info batang yang diklik saja (kartu info menempel di batang) ----
+  function clearPin(sec) { const p = sec.querySelector(".pin"); if (p) p.remove(); }
+  function showPin(sec, el, html, onClose) {
+    clearPin(sec);
+    const d = document.createElement("div"); d.className = "pin";
+    d.innerHTML = '<button class="x" type="button" aria-label="Tutup">\u00d7</button>' + html;
+    d.onclick = (e) => e.stopPropagation();
+    sec.appendChild(d);
+    const s = sec.getBoundingClientRect(), b = el.getBoundingClientRect(), w = d.offsetWidth, h = d.offsetHeight;
+    let left = b.left - s.left + b.width / 2 - w / 2; left = Math.max(6, Math.min(left, sec.clientWidth - w - 6));
+    let top = b.top - s.top - h - 8; if (top < 6) top = b.bottom - s.top + 8;
+    d.style.left = left + "px"; d.style.top = top + "px";
+    d.querySelector(".x").onclick = (e) => { e.stopPropagation(); onClose(); };
+  }
+  function pinHTML(title, cat, v, cnt, total, scope) {
+    const share = total > 0 ? (v / total) * 100 : 0;
+    return `<div class="pt">${esc(title)}</div><div class="pc">${esc(cat)}</div>` +
+      `<div class="pr"><span>Est Revenue</span><b>Rp ${fmt(v)}</b></div>` +
+      `<div class="pr"><span>Jumlah baris</span><b>${cnt}</b></div>` +
+      `<div class="pr"><span>Porsi dari total ${scope}</span><b>${share.toLocaleString("id-ID", { maximumFractionDigits: 1 })}%</b></div>`;
+  }
+  function countRows(rows, keyField, catField, cats) {
+    const canon = {}; cats.forEach((c) => { canon[c.toLowerCase()] = c; });
+    const m = {};
+    for (const r of rows) {
+      const k = r[keyField]; if (!k || typeof k !== "string") continue;
+      const c = canon[String(r[catField] || "").trim().toLowerCase()];
+      if (!c || typeof r.est_revenue !== "number") continue;
+      const key = k.trim().toLowerCase() + "|" + c; m[key] = (m[key] || 0) + 1;
+    }
+    return m;
+  }
+  const cntOf = (m, name, cat) => m[String(name).trim().toLowerCase() + "|" + cat] || 0;
   let tip;
   function showTip(el, html) {
     if (!tip) { tip = document.createElement("div"); tip.id = "tip"; document.body.appendChild(tip); }
@@ -253,6 +321,74 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     });
   }
 
+  // ---- Rincian (drill-down) dari batang Sales Pipeline: Sold To Party x Transaction Type ----
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { const o = document.getElementById("detailOv"); if (o) o.remove(); } });
+  function openDetail(owner, cat, rows) {
+    const clean = (v) => { const t = String(v == null ? "" : v).replace(/\s+/g, " ").trim(); return t || "Null"; };
+    const srt = (a, b) => (a === "Null") - (b === "Null") || a.localeCompare(b, "id", { sensitivity: "base" });
+    const data = rows.filter((r) => typeof r.est_revenue === "number" && r.owner)
+      .map((r) => ({ o: String(r.owner).trim(), c: clean(r.staging_category), p: clean(r.sold_to_party_group || r.sold_to_party), t: clean(r.transaction_type), v: r.est_revenue }));
+    const owners = [...new Set(data.map((d) => d.o))].sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }));
+    const parties = [...new Set(data.map((d) => d.p))].sort(srt), allCats = [...new Set(data.map((d) => d.c))].sort(srt);
+    const st = { cats: new Set(allCats.filter((c) => c.toLowerCase() === String(cat).trim().toLowerCase())), owners: new Set(owners.filter((o) => o.toLowerCase() === String(owner).trim().toLowerCase())), parties: new Set(parties) };
+    const old = document.getElementById("detailOv"); if (old) old.remove();
+    const ov = document.createElement("div"); ov.id = "detailOv";
+    ov.innerHTML = '<div class="panel"><div class="dash" style="border:0;padding:0"><div class="chart"><h1>Rincian <span class="unit"></span></h1><p class="meta sum"></p><div class="dh"><span>Sold To Party</span><span>Transaction Type</span></div><div class="drows"></div><div class="dfoot"></div></div><aside><button type="button" class="btn dclose" style="width:100%;margin-bottom:14px">Tutup \u00d7</button></aside></div></div>';
+    document.body.appendChild(ov);
+    const tp = document.createElement("div"); tp.className = "dtip"; tp.style.display = "none"; ov.appendChild(tp);
+    let pinned = false;
+    const unpin = () => { pinned = false; tp.style.display = "none"; tp.classList.remove("p"); };
+    const place = (x, y) => { tp.style.left = Math.max(4, Math.min(x + 14, window.innerWidth - tp.offsetWidth - 8)) + "px"; tp.style.top = Math.max(4, Math.min(y + 14, window.innerHeight - tp.offsetHeight - 8)) + "px"; };
+    const close = () => ov.remove();
+    ov.onclick = (e) => { unpin(); if (e.target === ov) close(); };
+    ov.querySelector(".dclose").onclick = close;
+    const out = ov.querySelector(".drows"), foot = ov.querySelector(".dfoot"), side = ov.querySelector("aside");
+    const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t)), C0 = [211, 229, 244], C1 = [42, 91, 140];
+    const nf = (v, d) => v.toLocaleString("id-ID", { maximumFractionDigits: d });
+    const cmp = (v) => { const a = Math.abs(v); return a >= 1e9 ? nf(v / 1e9, 2) + " M" : a >= 1e6 ? nf(v / 1e6, 2) + " jt" : fmt(v); };
+    const tickUnit = (v) => { if (!(v > 0)) return 1; const e = Math.pow(10, Math.floor(Math.log10(v / 3))); for (const f of [1, 2, 2.5, 5, 10]) if (f * e * 3 >= v) return f * e; return 10 * e; };
+    const tipHTML = (p, t, v) => '<div style="display:grid;grid-template-columns:auto auto;gap:2px 12px;font-size:13px"><span style="color:#6f7b8a">Sold To Party:</span><b>' + esc(p) + '</b><span style="color:#6f7b8a">Transaction Type:</span><b>' + esc(t) + '</b><span style="color:#6f7b8a">Est Revenue:</span><b>' + fmt(v) + '</b></div>';
+    function draw() {
+      unpin();
+      const sel = data.filter((d) => st.owners.has(d.o) && st.parties.has(d.p) && st.cats.has(d.c)), m = new Map(), ts = new Set();
+      sel.forEach((d) => { const o = m.get(d.p) || {}; o[d.t] = (o[d.t] || 0) + d.v; m.set(d.p, o); ts.add(d.t); });
+      const types = [...ts].sort(srt);
+      const list = [...m.entries()].map(([p, o]) => ({ p, o, tot: Object.values(o).reduce((a, b) => a + b, 0) })).sort((a, b) => b.tot - a.tot);
+      let max = 0, tot = 0, marks = 0;
+      list.forEach((r) => types.forEach((t) => { const v = r.o[t]; if (v !== undefined) { max = Math.max(max, v); tot += v; marks++; } }));
+      const U = max > 0 ? Math.pow(10, Math.floor(Math.log10(max))) : 1, AX = (Math.floor(max / U) + 1) * U, NT = Math.round(AX / U), cols = "260px repeat(" + Math.max(1, types.length) + ",1fr)";
+      const on = owners.filter((o) => st.owners.has(o)), oc = allCats.filter((c) => st.cats.has(c));
+      const tk = []; for (let k = NT; k >= 0; k--) tk.push(k);
+      const tickHTML = tk.map((k) => '<span style="top:' + ((1 - k / NT) * 100) + '%;transform:translateY(-50%)">' + (k === 0 ? (AX >= 1e9 ? "0B" : "0") : fmtAxis(U * k)) + "</span>").join("");
+      const gridHTML = tk.map((k) => '<i class="gl2' + (k === 0 ? " b" : "") + '" style="top:' + ((1 - k / NT) * 100) + '%"></i>').join("");
+      ov.querySelector(".unit").textContent = [on.length === 0 ? "" : on.length <= 2 ? on.join(", ") : on.length + " owner", oc.length === 0 ? "" : oc.length <= 2 ? oc.join(", ") : oc.length + " kategori"].filter(Boolean).join(" \u00b7 ");
+      ov.querySelector(".sum").textContent = marks + " marks \u00b7 " + sel.length + " baris \u00b7 SUM(Est Revenue): " + fmt(tot) + " \u00b7 label: M = miliar, jt = juta (nilai lengkap: arahkan kursor / klik batang)";
+      const gm = side.querySelector(".gmax"); if (gm) gm.textContent = fmt(max);
+      ov.querySelector(".dh").style.gridTemplateColumns = "260px 1fr";
+      foot.style.gridTemplateColumns = cols;
+      foot.innerHTML = "<span></span>" + types.map((t) => '<span title="' + esc(t) + '">' + esc(t) + "</span>").join("");
+      if (!list.length) { out.innerHTML = '<div class="empty">Tidak ada data untuk pilihan ini.</div>'; return; }
+      const info = [];
+      out.innerHTML = list.map((r) => '<div class="dr" style="grid-template-columns:190px 26px 44px repeat(' + types.length + ',1fr)"><div class="who" title="' + esc(r.p) + '">' + esc(r.p) + '</div><div class="yl">Est Revenue</div><div class="dt">' + tickHTML + '</div>' + types.map((t) => {
+        const v = r.o[t]; if (v === undefined) return '<div class="dc">' + gridHTML + '</div>';
+        const k = max > 0 ? Math.max(0, v) / max : 0, h = Math.max(0, v) / AX * 100, inside = h > 82;
+        info.push(tipHTML(r.p, t, v));
+        return '<div class="dc" data-i="' + (info.length - 1) + '">' + gridHTML + '<div class="db" style="height:' + h + '%;background:rgb(' + mix(C0, C1, k) + ')"></div><div class="dl" style="bottom:' + (inside ? "3px;color:#fff" : "calc(" + h + "% + 2px)") + '">' + cmp(v) + '</div></div>';
+      }).join("") + '</div>').join("");
+      out.querySelectorAll(".dc[data-i]").forEach((c) => {
+        const html = info[+c.dataset.i];
+        c.onmousemove = (e) => { if (pinned) return; tp.innerHTML = html; tp.style.display = "block"; place(e.clientX, e.clientY); };
+        c.onmouseleave = () => { if (!pinned) tp.style.display = "none"; };
+        c.onclick = (e) => { e.stopPropagation(); pinned = true; tp.classList.add("p"); tp.innerHTML = html; tp.style.display = "block"; place(e.clientX, e.clientY); };
+      });
+    }
+    checklist(side, "Staging Category", allCats, st.cats, draw, true);
+    checklist(side, "Owner", owners, st.owners, draw, true);
+    checklist(side, "Sold To Party", parties, st.parties, draw, false);
+    side.insertAdjacentHTML("beforeend", '<div class="sec"><h3>SUM(Est Revenue)</h3><div class="grad">0<i></i><span class="gmax"></span></div></div>');
+    draw();
+  }
+
   // ---- Dashboard 1: SALES PIPELINE (Owner x Staging Category) ----
   function buildPipeline(sec, pivot, revMin, revMax, rawRows) {
     const { names: ownerNames, cats: allCats, values: ownerVals } = normPivot(pivot, ["Won", "Hot Prospect", "Potential", "Forecast"]);
@@ -263,10 +399,11 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     // BUG FIX: initialize lo/hi to actual data range, not 0/0 (which filters out all positive revenue)
     const dataMin = revMin != null ? Number(revMin) : (all.length ? Math.min(...all) : 0);
     const dataMax = revMax != null ? Number(revMax) : (all.length ? Math.max(...all) : 1);
-    const st = { owners: new Set(rows.map((r) => r[0])), cats: new Set(allCats), lo: dataMin, hi: dataMax, hl: null };
+    const st = { owners: new Set(rows.map((r) => r[0])), cats: new Set(allCats), lo: dataMin, hi: dataMax, hl: null, sel: null };
     const AX = niceMax(Math.max(0, ...all));
 
     function draw() {
+      clearPin(sec);
       const cats = allCats.filter((c) => st.cats.has(c));
       sec.querySelector(".cats").innerHTML = cats.map((c) => `<span>${esc(c)}</span>`).join("");
       // Filter granular: hitung ulang pivot dari rawRows berdasarkan est_revenue range
@@ -280,6 +417,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
       }
       const agg = aggregateRows(filteredRows, "owner", cats);
       const show = agg.filter((r) => st.owners.has(r.name));
+      if (st.sel) { const rr = show.find((r) => r.name === st.sel.n); if (!rr || !cats.includes(st.sel.c) || !rr[st.sel.c]) st.sel = null; }
       if (!rows.length) { out.innerHTML = '<div class="empty">Tidak ada data Owner x Staging Category.</div>'; return; }
       if (!show.length) { out.innerHTML = '<div class="empty">Tidak ada owner yang dipilih. Centang minimal satu owner di sebelah kanan.</div>'; return; }
       out.innerHTML = show.map((r) => {
@@ -287,22 +425,36 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
         const cols = vals.map((v, i) => {
           // BUG FIX: jangan filter nilai agregat dengan st.lo/st.hi — nilai agregat bisa jauh lebih besar dari revenue per row
           if (v == null || v === 0) return '<div class="col"></div>';
-          const h = (v / AX) * 100, dim = st.hl !== null && st.hl !== i;
-          return `<div class="col" style="opacity:${dim ? 0.22 : 1}"><div class="bar" style="height:${h}%;background:var(${CAT_COLOR[cats[i]]})" data-o="${esc(r.name)}" data-i="${i}" data-v="${v}"></div><div class="val" style="bottom:calc(${h}% + 3px)">${fmt(v)}</div></div>`;
+          const h = (v / AX) * 100, isSel = !!st.sel && st.sel.n === r.name && st.sel.c === cats[i];
+          const dim = (st.hl !== null && st.hl !== i) || (!!st.sel && !isSel);
+          return `<div class="col" style="opacity:${dim ? 0.22 : 1}"><div class="bar${isSel ? " sel" : ""}" style="height:${h}%;background:var(${CAT_COLOR[cats[i]]})" data-o="${esc(r.name)}" data-i="${i}" data-v="${v}"></div><div class="val" style="bottom:calc(${h}% + 3px);${st.sel && !isSel ? "visibility:hidden" : ""}">${fmt(v)}</div></div>`;
         }).join("");
         return `<div class="row"><div class="who">${esc(r.name)}</div><div class="yl">Est Revenue</div><div class="plot"><span class="tick" style="bottom:100%">${fmtAxis(AX)}</span><span class="tick" style="bottom:50%">${fmtAxis(AX / 2)}</span><span class="tick" style="bottom:0">0</span><div class="gl" style="bottom:100%"></div><div class="gl" style="bottom:50%"></div><div class="gl" style="bottom:0"></div><div class="bars" style="grid-template-columns:repeat(${cats.length},1fr)">${cols}</div></div></div>`;
       }).join("");
       out.querySelectorAll(".bar").forEach((b) => {
-        showTip(b, `<b>${esc(b.dataset.o)}</b><br>${esc(cats[b.dataset.i])}<br>Est Revenue: ${fmt(+b.dataset.v)}`);
-        b.onclick = () => { st.hl = st.hl === +b.dataset.i ? null : +b.dataset.i; legend(); draw(); };
+        b.onclick = (e) => {
+          e.stopPropagation();
+          openDetail(b.dataset.o, cats[b.dataset.i], rawRows);
+        };
       });
+      if (st.sel) {
+        const b = out.querySelector(".bar.sel"), rr = show.find((r) => r.name === st.sel.n);
+        if (b && rr) {
+          const cm = countRows(filteredRows, "owner", "staging_category", cats), tot = cats.reduce((a, c) => a + (rr[c] || 0), 0);
+          showPin(sec, b, pinHTML(rr.name, st.sel.c, rr[st.sel.c], cntOf(cm, rr.name, st.sel.c), tot, "owner") + '<button type="button" class="drill">Lihat rincian \u203a</button>', () => { st.sel = null; draw(); });
+          const dr = sec.querySelector(".pin .drill");
+          if (dr) { const so = rr.name, sc = st.sel.c; dr.onclick = (e) => { e.stopPropagation(); openDetail(so, sc, filteredRows); }; }
+        }
+      }
     }
+    out.onclick = () => { if (st.sel) { st.sel = null; draw(); } };
+    sec.__clear = () => { if (st.sel) { st.sel = null; draw(); } };
     function legend() {
       const box = side.querySelector(".leg");
       if (!box) return;
       const cats = allCats.filter((c) => st.cats.has(c));
       box.innerHTML = cats.map((c, i) => `<button class="lg ${st.hl === i ? "sel" : ""}" data-i="${i}" aria-pressed="${st.hl === i}"><i style="background:var(${CAT_COLOR[c]})"></i>${esc(c)}</button>`).join("");
-      box.querySelectorAll(".lg").forEach((b) => (b.onclick = () => { st.hl = st.hl === +b.dataset.i ? null : +b.dataset.i; legend(); draw(); }));
+      box.querySelectorAll(".lg").forEach((b) => (b.onclick = () => { st.sel = null; st.hl = st.hl === +b.dataset.i ? null : +b.dataset.i; legend(); draw(); }));
     }
     checklist(side, "Owner", rows.map((r) => r[0]), st.owners, draw, true);
     checklist(side, "Staging Category", allCats, st.cats, draw, false);
@@ -321,10 +473,11 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     // BUG FIX: initialize lo/hi to row revenue range, not 0/0
     const dataMin = revMin != null ? Number(revMin) : (all.length ? Math.min(...all) : 0);
     const dataMax = revMax != null ? Number(revMax) : (all.length ? Math.max(...all) : 1);
-    const st = { parties: new Set(rows.map((r) => r[0])), cats: new Set(allCats), lo: dataMin, hi: dataMax };
+    const st = { parties: new Set(rows.map((r) => r[0])), cats: new Set(allCats), lo: dataMin, hi: dataMax, sel: null };
     const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t)), C0 = [211, 229, 244], C1 = [42, 91, 140];
 
     function draw() {
+      clearPin(sec);
       const cats = allCats.filter((c) => st.cats.has(c));
       sec.querySelector(".cats").innerHTML = cats.map((c) => `<span>${esc(c)}</span>`).join("");
       // Filter granular: hitung ulang pivot dari rawRows berdasarkan est_revenue range
@@ -338,6 +491,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
       }
       const agg = aggregateRows(filteredRows, "sold_to_party_group", cats);
       const show = agg.filter((r) => st.parties.has(r.name));
+      if (st.sel) { const rr = show.find((r) => r.name === st.sel.n); if (!rr || !cats.includes(st.sel.c) || !rr[st.sel.c]) st.sel = null; }
       if (!rows.length) { out.innerHTML = '<div class="empty">Tidak ada data Sold To Party (kolom kosong di file sumber).</div>'; return; }
       if (!show.length) { out.innerHTML = '<div class="empty">Tidak ada Sold To Party yang dipilih. Centang minimal satu di sebelah kanan.</div>'; return; }
       out.innerHTML = show.map((r) => {
@@ -346,11 +500,28 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
           // BUG FIX: jangan filter nilai agregat dengan st.lo/st.hi — nilai agregat bisa jauh lebih besar dari revenue per row
           if (v == null || v === 0) return '<div class="cell"></div>';
           const t = MAX > 0 ? Math.max(0, v) / MAX : 0, c = mix(C0, C1, t);
-          return `<div class="cell"><div class="t">${fmt(v)}</div><div class="h" style="height:${2 + 8 * t}px;background:rgb(${c})" data-p="${esc(r.name)}" data-i="${i}" data-v="${v}"></div></div>`;
+          const isSel = !!st.sel && st.sel.n === r.name && st.sel.c === cats[i], dim = !!st.sel && !isSel;
+          return `<div class="cell${isSel ? " sel" : ""}" style="cursor:pointer;opacity:${dim ? 0.22 : 1}" data-p="${esc(r.name)}" data-i="${i}" data-v="${v}"><div class="t" style="${dim ? "visibility:hidden" : ""}">${fmt(v)}</div><div class="h${isSel ? " sel" : ""}" style="height:${2 + 8 * t}px;background:rgb(${c})"></div></div>`;
         }).join("") + "</div>";
       }).join("");
-      out.querySelectorAll(".h").forEach((b) => showTip(b, `<b>${esc(b.dataset.p)}</b><br>${esc(cats[b.dataset.i])}<br>Est Revenue: ${fmt(+b.dataset.v)}`));
+      out.querySelectorAll(".cell[data-p]").forEach((b) => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const n = b.dataset.p, c = cats[b.dataset.i];
+          st.sel = st.sel && st.sel.n === n && st.sel.c === c ? null : { n, c };
+          draw();
+        };
+      });
+      if (st.sel) {
+        const b = out.querySelector(".cell.sel .h"), rr = show.find((r) => r.name === st.sel.n);
+        if (b && rr) {
+          const cm = countRows(filteredRows, "sold_to_party_group", "staging_category", cats), tot = cats.reduce((a, c) => a + (rr[c] || 0), 0);
+          showPin(sec, b, pinHTML(rr.name, st.sel.c, rr[st.sel.c], cntOf(cm, rr.name, st.sel.c), tot, "party"), () => { st.sel = null; draw(); });
+        }
+      }
     }
+    out.onclick = () => { if (st.sel) { st.sel = null; draw(); } };
+    sec.__clear = () => { if (st.sel) { st.sel = null; draw(); } };
     checklist(side, "Sold To Party", rows.map((r) => r[0]), st.parties, draw, false);
     checklist(side, "Staging Category", allCats, st.cats, draw, false);
     range(side, dataMin, dataMax, st, draw);
@@ -363,44 +534,70 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
   // Label batang: miliar + akhiran "M"; nilai positif yang sangat kecil ditampilkan "<0,01 M" (nilai persis ada di tooltip)
   const fmtBar = (n) => (n > 0 && n < 5e6 ? "<0,01 M" : fmtHM(n) + " M");
   function buildTxType(sec, data, revMin, revMax) {
-    const rawRows = Array.isArray(data.rows) ? data.rows : [];
+    const cleanTxt = (v, empty) => { const t = String(v == null ? "" : v).replace(/\s+/g, " ").trim(); return t || empty; };
+    const rawRows = (Array.isArray(data.rows) ? data.rows : []).map((r) => ({ ...r, transaction_type: cleanTxt(r.transaction_type, "Null"), _party: cleanTxt(r.sold_to_party_group || r.sold_to_party, "Null") }));
+    const nullLast = (a, b) => (a === "Null" ? 1 : b === "Null" ? -1 : a.localeCompare(b, "id", { sensitivity: "base" }));
+    const nullFirst = (a, b) => (a === "Null" ? -1 : b === "Null" ? 1 : a.localeCompare(b, "id", { sensitivity: "base" }));
     const allOwners = [...new Set(rawRows.map((r) => r.owner).filter(Boolean))].sort();
-    const allTypes = [...new Set(rawRows.map((r) => r.transaction_type).filter(Boolean))].sort();
-    const allParties = [...new Set(rawRows.map((r) => r.sold_to_party_group || r.sold_to_party || "(Kosong)"))].sort();
-    sec.innerHTML = `<div class="chart"><h1>STAGING CATEGORY <span class="unit">(nilai dalam Miliar Rupiah)</span></h1><div class="head"><span>Owner</span><span>Transaction Type</span></div><div class="rows"></div><div class="foot"><span></span><div class="cats"></div></div></div><aside></aside>`;
+    const allTypes = [...new Set(rawRows.map((r) => r.transaction_type))].sort(nullLast);
+    const allParties = [...new Set(rawRows.map((r) => r._party))].sort(nullFirst);
+    sec.innerHTML = `<div class="chart"><h1>STAGING CATEGORY <span class="unit">(nilai dalam Miliar Rupiah)</span></h1><p class="meta sum"></p><div class="head"><span>Owner</span><span>Transaction Type</span></div><div class="rows"></div><div class="foot"><span></span><div class="cats"></div></div></div><aside></aside>`;
     const side = sec.querySelector("aside"), out = sec.querySelector(".rows");
     const initAgg = aggregateRows(rawRows, "owner", allTypes, "transaction_type");
     const all = initAgg.flatMap((r) => allTypes.map((c) => r[c])).filter((v) => typeof v === "number");
     const dataMin = revMin != null ? Number(revMin) : (all.length ? Math.min(...all) : 0);
     const dataMax = revMax != null ? Number(revMax) : (all.length ? Math.max(...all) : 1);
-    const st = { owners: new Set(allOwners), types: new Set(allTypes), parties: new Set(allParties), lo: dataMin, hi: dataMax };
+    const st = { owners: new Set(allOwners), types: new Set(allTypes), parties: new Set(allParties), lo: dataMin, hi: dataMax, sel: null };
     const AX = niceMax(Math.max(0, ...all));
     function draw() {
-      const cats = allTypes.filter((c) => st.types.has(c));
+      clearPin(sec);
+      const selTypes = allTypes.filter((c) => st.types.has(c));
       const catsBox = sec.querySelector(".cats");
-      catsBox.style.gridTemplateColumns = "repeat(" + cats.length + ",1fr)";
-      catsBox.innerHTML = cats.map((c) => `<span>${esc(c)}</span>`).join("");
       const filteredRows = rawRows.filter((r) => {
         const v = r.est_revenue;
         if (v === null || v === undefined || typeof v !== "number" || v < st.lo || v > st.hi) return false;
-        return st.parties.has(r.sold_to_party_group || r.sold_to_party || "(Kosong)");
+        return st.parties.has(r._party);
       });
-      const agg = aggregateRows(filteredRows, "owner", cats, "transaction_type");
+      const agg = aggregateRows(filteredRows, "owner", selTypes, "transaction_type");
+      const cats = selTypes.filter((c) => agg.some((r) => st.owners.has(r.name) && r[c]));
+      catsBox.style.gridTemplateColumns = "repeat(" + Math.max(1, cats.length) + ",1fr)";
+      catsBox.innerHTML = cats.map((c) => `<span>${esc(c)}</span>`).join("");
+      let sTot = 0, sMarks = 0;
+      agg.forEach((r) => { if (!st.owners.has(r.name)) return; cats.forEach((c) => { if (r[c]) { sTot += r[c]; sMarks++; } }); });
+      const sRows = filteredRows.filter((r) => st.types.has(r.transaction_type) && st.owners.has(r.owner)).length;
+      sec.querySelector(".sum").textContent = sMarks + " marks \u00b7 " + sRows + " baris \u00b7 SUM(Est Revenue): " + fmt(sTot);
       const show = agg.filter((r) => st.owners.has(r.name));
+      if (st.sel) { const rr = show.find((r) => r.name === st.sel.n); if (!rr || !cats.includes(st.sel.c) || !rr[st.sel.c]) st.sel = null; }
       if (!allOwners.length) { out.innerHTML = '<div class="empty">Tidak ada data Owner x Transaction Type.</div>'; return; }
-      if (!show.length) { out.innerHTML = '<div class="empty">Tidak ada owner/tipe transaksi yang dipilih untuk filter ini.</div>'; return; }
+      if (!show.length || !cats.length) { out.innerHTML = '<div class="empty">Tidak ada owner/tipe transaksi yang dipilih untuk filter ini.</div>'; return; }
       out.innerHTML = show.map((r) => {
         const cols = cats.map((c, i) => {
           const v = r[c];
           if (v == null || v === 0) return '<div class="col"></div>';
-          const h = (v / AX) * 100;
-          return `<div class="col"><div class="bar" style="height:${h}%;background:var(--fc)" data-o="${esc(r.name)}" data-i="${i}" data-v="${v}"></div><div class="val" style="bottom:calc(${h}% + 3px)">${fmtBar(v)}</div></div>`;
+          const h = (v / AX) * 100, isSel = !!st.sel && st.sel.n === r.name && st.sel.c === c, dim = !!st.sel && !isSel;
+          return `<div class="col" style="opacity:${dim ? 0.22 : 1}"><div class="bar${isSel ? " sel" : ""}" style="height:${h}%;background:var(--fc)" data-o="${esc(r.name)}" data-i="${i}" data-v="${v}"></div><div class="val" style="bottom:calc(${h}% + 3px);${dim ? "visibility:hidden" : ""}">${fmtBar(v)}</div></div>`;
         }).join("");
         return `<div class="row"><div class="who">${esc(r.name)}</div><div class="yl">Est Revenue</div><div class="plot"><span class="tick" style="bottom:100%">${fmtHM(AX)}</span><span class="tick" style="bottom:50%">${fmtHM(AX / 2)}</span><span class="tick" style="bottom:0">0</span><div class="gl" style="bottom:100%"></div><div class="gl" style="bottom:50%"></div><div class="gl" style="bottom:0"></div><div class="bars" style="grid-template-columns:repeat(${cats.length},1fr)">${cols}</div></div></div>`;
       }).join("");
-      out.querySelectorAll(".bar").forEach((b) => showTip(b, `<b>${esc(b.dataset.o)}</b><br>${esc(cats[b.dataset.i])}<br>Est Revenue: Rp ${fmt(+b.dataset.v)}`));
+      out.querySelectorAll(".bar").forEach((b) => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const n = b.dataset.o, c = cats[b.dataset.i];
+          st.sel = st.sel && st.sel.n === n && st.sel.c === c ? null : { n, c };
+          draw();
+        };
+      });
+      if (st.sel) {
+        const b = out.querySelector(".bar.sel"), rr = show.find((r) => r.name === st.sel.n);
+        if (b && rr) {
+          const cm = countRows(filteredRows, "owner", "transaction_type", cats), tot = cats.reduce((a, c) => a + (rr[c] || 0), 0);
+          showPin(sec, b, pinHTML(rr.name, st.sel.c, rr[st.sel.c], cntOf(cm, rr.name, st.sel.c), tot, "owner"), () => { st.sel = null; draw(); });
+        }
+      }
     }
-    checklist(side, "Sold To Party", allParties, st.parties, draw, true);
+    out.onclick = () => { if (st.sel) { st.sel = null; draw(); } };
+    sec.__clear = () => { if (st.sel) { st.sel = null; draw(); } };
+    checklist(side, "Sold To Party", allParties, st.parties, draw, false);
     checklist(side, "Owner", allOwners, st.owners, draw, true);
     checklist(side, "Transaction Type", allTypes, st.types, draw, false);
     range(side, dataMin, dataMax, st, draw);
@@ -445,7 +642,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
   const SOURCE_CONFIGS = [
     { key: "pipeline", target_stagings: ["Forecast", "Hot Prospect", "Potential"], forced_staging: null, overrides: {} },
     { key: "contract", target_stagings: null, forced_staging: "Won", overrides: { topic: ["name"], revenue: ["total amount sales price"] } },
-    { key: "noncontract", target_stagings: null, forced_staging: "Won", overrides: { close_date: ["actual close date"], revenue: ["actual revenue"] } },
+    { key: "noncontract", target_stagings: null, forced_staging: "Won", overrides: { close_date: ["actual close date"], revenue: ["actual revenue"] } },  // Won = revenue realisasi (kolom "Actual Revenue" di file Closewon Non Contract)
   ];
 
   function mergeAliases(ov) { const m = {}; for (const k in BASE_ALIASES) m[k] = BASE_ALIASES[k].slice(); for (const k in (ov || {})) m[k] = ov[k].slice(); return m; }
@@ -461,7 +658,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     if (bestRow < 0 || bestScore < 4) throw new Error("baris header tidak ditemukan (cek nama kolom)");
     return { headerRow: bestRow, colMap: bestMap };
   }
-  function looksLikeDate(v) { if (v instanceof Date) return true; if (typeof v === "string") return /^\s*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}/.test(v); return false; }
+  function looksLikeDate(v) { if (v instanceof Date) return true; if (typeof v === "string") return /^\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})/.test(v); return false; }
   function cellText(row, colMap, field) { const c = colMap[field]; if (c === undefined) return null; let v = row[c]; if (typeof v === "string") v = v.trim(); return v === "" ? null : (v ?? null); }
   // Parser angka toleran untuk revenue yang tersimpan sebagai teks: "Rp72,500,000.00" (format EN), "Rp72.500.000,50" (format ID), "(1.000)" (negatif)
   function parseNum(v) {
@@ -533,14 +730,16 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     });
     return [...map.entries()].map(([name, vals]) => ({ name, ...vals, grand_total: STAGING_CATS.reduce((s, c) => s + vals[c], 0) }));
   }
-  // Semua Sold To Party dengan kata "BUMA" (BUMA IPR, BUMA BINUNGAN, dst.) digabung jadi satu baris "BUMA".
-  // "PT BUKIT MAKMUR MANDIRI UTAMA" TIDAK ikut digabung (sesuai acuan Tableau).
+  // Semua Sold To Party milik grup ini digabung revenue-nya jadi satu baris "PT Bukit Makmur":
+  //  - "BUMA IPR", "BUMA BINUNGAN", dst. (kata BUMA berdiri sendiri)
+  //  - "PT BUKIT MAKMUR MANDIRI UTAMA"
   // Nama lain dirapikan (trim + spasi ganda) agar konsisten antara pivot, chart, dan export Excel.
-  const BUMA_RE = /\bBUMA\b/i;
+  const BUKIT_MAKMUR = "PT Bukit Makmur";
+  const BUKIT_MAKMUR_RE = /BUKIT\s+MAKMUR\s+MANDIRI\s+UTAMA|\bBUMA\s+(BINUNGAN|IPR)\b/i;
   function normalizeParty(name) {
     const s = String(name == null ? "" : name).replace(/\s+/g, " ").trim();
     if (!s) return "(Kosong)";
-    return BUMA_RE.test(s) ? "BUMA" : s;
+    return BUKIT_MAKMUR_RE.test(s) ? BUKIT_MAKMUR : s;
   }
   function buildDashboardData(rowsIn) {
     // sold_to_party_group dipakai untuk pivot & chart PT DASH; sold_to_party asli tetap disimpan untuk export Flat Format
@@ -684,6 +883,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     $("btnPres").disabled = false;
     notice("warn", "Mode <b>DEMO</b> dengan data contoh ditampilkan.");
   };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelectorAll(".dash").forEach((el) => el.__clear && el.__clear()); });
   notice("warn", "Unggah 3 file Excel (Sales Pipeline, Closewon Contract, Closewon Non Contract). Nama Owner akan terdeteksi otomatis, lalu klik <b>Proses</b>. Atau klik <b>Lihat Demo</b>.");
 })();
 </script>
