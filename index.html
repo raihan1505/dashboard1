@@ -133,6 +133,37 @@ input[type=checkbox]{margin:0;accent-color:#4e79a7;flex:none}
 .dc{background:none}
 .gl2{position:absolute;left:0;right:0;border-top:1px solid #e3e6ea}
 .gl2.b{border-top-color:#cfd3d8}
+#tblOv{position:fixed;inset:0;background:rgba(20,30,45,.5);z-index:30;padding:16px}
+#tblOv .xpanel{height:100%;max-width:1500px;margin:0 auto;background:#fff;border:1px solid #bfbfbf;display:flex;flex-direction:column;font-family:Calibri,"Segoe UI",Arial,sans-serif}
+.xbar{display:flex;align-items:center;gap:16px;background:#217346;color:#fff;padding:8px 12px;font-size:14px}
+.xbar .sp{flex:1}
+.xbar .btn{background:#fff;color:#217346;border-color:#fff}
+.xwrap{flex:1;overflow:auto}
+.xt{border-collapse:collapse;font-size:13px;white-space:nowrap}
+.xt th,.xt td{border:1px solid #d4d4d4;padding:0 7px;height:22px}
+.xt thead th{position:sticky;background:#e6e6e6;font-weight:400;text-align:center;z-index:2}
+.xt thead tr:first-child th{top:0}
+.xt thead tr.hd th{top:23px;background:#f3f3f3;font-weight:700;text-align:left}
+.xt th.rn{position:sticky;left:0;background:#e6e6e6;color:#444;text-align:center;font-weight:400;min-width:38px;z-index:1}
+.xt thead th.rn{z-index:3}
+.xt td.num{text-align:right}
+.xt tr.tot td{font-weight:700;background:#f3f3f3}
+.xtab{background:#f3f3f3;border-top:1px solid #bfbfbf;padding:0 10px;height:28px;display:flex;align-items:flex-end}
+.xtab span{background:#fff;border:1px solid #bfbfbf;border-top:2px solid #217346;border-bottom:0;padding:3px 16px;font-weight:700;color:#217346;font-size:13px}
+.pres.pf{position:fixed;inset:0;z-index:40;overflow:auto;border:0;padding:44px 7vw;font-size:16px}
+.pres.pf h1{font-size:38px}
+.pres.pf .sub{font-size:16px}
+.pres.pf .kpi .n{font-size:28px}
+.pres.pf .kpi .l{font-size:14px}
+.pres.pf h3{font-size:20px}
+.pres .pexit{position:fixed;top:12px;right:16px;z-index:41}
+body.presenting{padding:8px;background:#fff}
+body.presenting .wrap{max-width:none}
+body.presenting .wrap>:not(#root){display:none}
+body.presenting .tabs{display:none}
+body.presenting #root .dash{min-height:calc(100vh - 20px)}
+#pexit{position:fixed;top:10px;right:14px;z-index:45;opacity:.85}
+#pexit[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -322,7 +353,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
   }
 
   // ---- Rincian (drill-down) dari batang Sales Pipeline: Sold To Party x Transaction Type ----
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { const o = document.getElementById("detailOv"); if (o) o.remove(); } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { ["detailOv", "tblOv"].forEach((id) => { const o = document.getElementById(id); if (o) o.remove(); }); } });
   function openDetail(owner, cat, rows) {
     const clean = (v) => { const t = String(v == null ? "" : v).replace(/\s+/g, " ").trim(); return t || "Null"; };
     const srt = (a, b) => (a === "Null") - (b === "Null") || a.localeCompare(b, "id", { sensitivity: "base" });
@@ -389,6 +420,37 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
     draw();
   }
 
+  // ---- Tampilan ala Excel (Flat Format) untuk baris yang menyusun satu batang Sales Pipeline ----
+  function openTable(owner, cat, rows) {
+    const old = document.getElementById("tblOv"); if (old) old.remove();
+    const p2 = (n) => String(n).padStart(2, "0");
+    const fdate = (v) => { if (v instanceof Date && !isNaN(v)) { const d = p2(v.getDate()) + "/" + p2(v.getMonth() + 1) + "/" + v.getFullYear(); return (v.getHours() || v.getMinutes()) ? d + " " + p2(v.getHours()) + ":" + p2(v.getMinutes()) : d; } return v == null ? "" : String(v); };
+    const own = String(owner).trim().toLowerCase(), cg = String(cat).trim().toLowerCase();
+    const list = rows.filter((r) => String(r.owner || "").trim().toLowerCase() === own && String(r.staging_category || "").trim().toLowerCase() === cg);
+    const HEAD = ["CREATED ON", "TOPIC", "OWNER", "AREA", "SOLD TO PARTY", "TRANSACTION TYPE", "EST CLOSE DATE", "EST REVENUE", "STAGING CATEGORY", "OPPTY", "SOLD TO PARTY (ASLI)"];
+    const body = list.map((r) => [fdate(r.created_on), r.topic, r.owner, r.area, r.sold_to_party_group || r.sold_to_party, r.transaction_type, fdate(r.est_close_date), typeof r.est_revenue === "number" ? r.est_revenue : 0, r.staging_category,
+      ["Hot Prospect", "Forecast", "Potential"].includes(r.staging_category) ? "OPTY" : (r.staging_category === "Won" ? "Won" : ""), r.sold_to_party].map((x) => (x == null ? "" : x)));
+    const total = body.reduce((a, r) => a + r[7], 0);
+    const letters = HEAD.map((_, i) => String.fromCharCode(65 + i));
+    const cell = (v, i) => '<td class="' + (i === 7 ? "num" : "") + '">' + (i === 7 ? fmt(v) : esc(v)) + "</td>";
+    const ov = document.createElement("div"); ov.id = "tblOv";
+    ov.innerHTML = '<div class="xpanel"><div class="xbar"><b>' + esc(owner) + ' \u00b7 ' + esc(cat) + '</b><span>' + body.length + ' baris \u00b7 SUM(Est Revenue): Rp ' + fmt(total) + '</span><span class="sp"></span><button type="button" class="btn xdl">Unduh Excel</button><button type="button" class="btn xclose">Tutup \u00d7</button></div>'
+      + '<div class="xwrap"><table class="xt"><thead><tr><th class="rn"></th>' + letters.map((l) => "<th>" + l + "</th>").join("") + '</tr><tr class="hd"><th class="rn">1</th>' + HEAD.map((h) => "<th>" + esc(h) + "</th>").join("") + '</tr></thead><tbody>'
+      + body.map((r, i) => '<tr><th class="rn">' + (i + 2) + "</th>" + r.map(cell).join("") + "</tr>").join("")
+      + '<tr class="tot"><th class="rn">' + (body.length + 2) + '</th><td colspan="7">Total</td><td class="num">' + fmt(total) + '</td><td colspan="3"></td></tr></tbody></table></div>'
+      + '<div class="xtab"><span>Flat Format</span></div></div>';
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    ov.onclick = (e) => { if (e.target === ov) close(); };
+    ov.querySelector(".xclose").onclick = close;
+    ov.querySelector(".xdl").onclick = () => {
+      if (typeof XLSX === "undefined") { alert("Library Excel belum termuat."); return; }
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEAD, ...body]), "Flat Format");
+      XLSX.writeFile(wb, "rincian_" + String(owner).replace(/[^\w]+/g, "_") + "_" + String(cat).replace(/[^\w]+/g, "_") + ".xlsx");
+    };
+  }
+
   // ---- Dashboard 1: SALES PIPELINE (Owner x Staging Category) ----
   function buildPipeline(sec, pivot, revMin, revMax, rawRows) {
     const { names: ownerNames, cats: allCats, values: ownerVals } = normPivot(pivot, ["Won", "Hot Prospect", "Potential", "Forecast"]);
@@ -434,7 +496,7 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
       out.querySelectorAll(".bar").forEach((b) => {
         b.onclick = (e) => {
           e.stopPropagation();
-          openDetail(b.dataset.o, cats[b.dataset.i], rawRows);
+          openTable(b.dataset.o, cats[b.dataset.i], rawRows.filter((r) => typeof r.est_revenue !== "number" || (r.est_revenue >= st.lo && r.est_revenue <= st.hi)));
         };
       });
       if (st.sel) {
@@ -756,11 +818,19 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
 
   function getFiles() { return { pipeline: $("f_pipeline").files[0], contract: $("f_contract").files[0], noncontract: $("f_noncontract").files[0] }; }
 
+  // Owner yang tidak dimasukkan ke daftar (dicocokkan tanpa memperhatikan huruf besar/kecil, spasi ganda, dan tanda #)
+  const EXCLUDED_OWNERS = new Set([
+    "AHMAD RIZAL RENDIANSYAH", "AQIS NUR KHOLIS", "Allen Denisyola Dian Sukoco", "ARKA WIBOWO", "BERTHA NARENDRA",
+    "MUHAMMAD HAFIZH RAFI", "NAUFAL ARIQ TAUFIQ", "REZA OCTAPRASETYA PERMADI", "Stephanus Nicolaus", "UMAR CHOLIDY",
+    "Yoga Lintang Fahrezi", "INFORMATION TECHNOLOGY", "SYSTEM", "Adhi Prasetyo",
+  ].map((n) => n.replace(/\s+/g, " ").trim().toLowerCase()));
+  const isExcludedOwner = (n) => EXCLUDED_OWNERS.has(String(n).replace(/#/g, "").replace(/\s+/g, " ").trim().toLowerCase());
+
   function scanOwnersFromAOA(aoa, headerRow, colMap, set) {
     for (let r = headerRow + 1; r < aoa.length; r++) {
       const row = aoa[r] || [];
       const createdOn = cellText(row, colMap, "created_on"), ownerVal = cellText(row, colMap, "owner");
-      if (!looksLikeDate(createdOn) && ownerVal && !isIgnorable(ownerVal)) set.add(String(ownerVal).trim());
+      if (!looksLikeDate(createdOn) && ownerVal && !isIgnorable(ownerVal) && !isExcludedOwner(ownerVal)) set.add(String(ownerVal).trim());
     }
   }
 
@@ -864,16 +934,33 @@ const DEMO_DATA = {"generated_at": "2026-09-25T08:17:22", "row_count": 101, "sta
 
   $("btnProcess").onclick = processAll;
   $("btnPivot").onclick = downloadPivot;
+  // Tampilan Presentasi: slide (tab) yang sedang dibuka tampil layar penuh; panah kiri/kanan pindah slide
+  let presOn = false;
+  const pexit = document.createElement("button");
+  pexit.id = "pexit"; pexit.type = "button"; pexit.className = "btn"; pexit.hidden = true; pexit.textContent = "Keluar \u00d7";
+  document.body.appendChild(pexit);
+  function stopPres() {
+    if (!presOn) return;
+    presOn = false;
+    document.body.classList.remove("presenting"); pexit.hidden = true;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
   $("btnPres").onclick = () => {
-    if (!window.__pivotData) return;
-    buildPresentation(window.__pivotData);
-    $("root").hidden = true; $("presentation").hidden = false;
-    $("btnPres").hidden = true; $("btnClosePres").hidden = false;
+    if (!$("root").querySelector(".dash")) return;
+    presOn = true;
+    document.body.classList.add("presenting"); pexit.hidden = false; window.scrollTo(0, 0);
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
   };
-  $("btnClosePres").onclick = () => {
-    $("root").hidden = false; $("presentation").hidden = true;
-    $("btnPres").hidden = false; $("btnClosePres").hidden = true;
-  };
+  pexit.onclick = stopPres;
+  document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) stopPres(); });
+  document.addEventListener("keydown", (e) => {
+    if (!presOn) return;
+    if (e.key === "Escape") { if (!document.getElementById("tblOv") && !document.getElementById("detailOv")) stopPres(); return; }
+    if ((e.key !== "ArrowRight" && e.key !== "ArrowLeft") || document.getElementById("tblOv") || document.getElementById("detailOv")) return;
+    const tabs = [...$("root").querySelectorAll(".tabs button")], i = tabs.findIndex((b) => b.getAttribute("aria-selected") === "true");
+    const j = e.key === "ArrowRight" ? Math.min(i + 1, tabs.length - 1) : Math.max(i - 1, 0);
+    if (tabs[j] && j !== i) { tabs[j].click(); window.scrollTo(0, 0); }
+  });
   $("btnDemo").onclick = () => {
     $("meta").textContent = "DEMO - 101 rows";
     const demo = { ...DEMO_DATA, rows: DEMO_DATA.rows.map((r) => ({ ...r, sold_to_party_group: normalizeParty(r.sold_to_party || "(Kosong)") })) };
